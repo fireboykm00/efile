@@ -6,9 +6,7 @@ import {
 } from "react-router-dom";
 import { LoginPage } from "@/pages/LoginPage";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useAuthStore } from "@/stores/authStore";
-import { useEffect } from "react";
-import { AuthService } from "@/services/authService";
+import { useAuth } from "@/contexts/AuthContext";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { DocumentsPage } from "@/pages/DocumentsPage";
 import { CasesPage } from "@/pages/CasesPage";
@@ -18,82 +16,77 @@ import { RegisterPage } from "@/pages/RegisterPage";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Toaster } from "sonner";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-function App() {
-  const { isAuthenticated, login } = useAuthStore();
+function AppContent() {
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Check for existing authentication on app load
-  useEffect(() => {
-    const initializeAuth = async () => {
-      const token = AuthService.getAccessToken();
-      if (token && !isAuthenticated) {
-        try {
-          // Verify token is still valid by fetching user data
-          const userData = await AuthService.getCurrentUser();
-          login(userData.user);
-        } catch {
-          // Token is invalid, clear it
-          AuthService.logout();
-        }
-      }
-    };
-
-    initializeAuth();
-  }, [isAuthenticated, login]);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
+    <Router>
+      <div className="App">
+        <Routes>
+          {/* Public routes */}
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <LoginPage />
+              )
+            }
+          />
+
+          {/* Protected routes with layout */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/cases" element={<CasesPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
+
+          {/* Default redirect */}
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to={isAuthenticated ? "/dashboard" : "/login"}
+                replace
+              />
+            }
+          />
+
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+        <Toaster position="top-right" />
+      </div>
+    </Router>
+  );
+}
+
+function App() {
+  return (
     <ErrorBoundary>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Public routes */}
-            <Route
-              path="/login"
-              element={
-                isAuthenticated ? (
-                  <Navigate to="/dashboard" replace />
-                ) : (
-                  <LoginPage />
-                )
-              }
-            />
-
-            <Route path="/register" element={isAuthenticated ? (
-                  <Navigate to="/dashboard" replace />
-                ): (<RegisterPage />)} />
-
-            {/* Protected routes with layout */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/cases" element={<CasesPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/admin" element={<AdminPage />} />
-            </Route>
-
-            {/* Default redirect */}
-            <Route
-              path="/"
-              element={
-                <Navigate
-                  to={isAuthenticated ? "/dashboard" : "/login"}
-                  replace
-                />
-              }
-            />
-
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-          <Toaster position="top-right" />
-        </div>
-      </Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

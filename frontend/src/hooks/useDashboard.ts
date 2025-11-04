@@ -13,23 +13,23 @@ export function useDashboard(options: UseDashboardOptions = {}) {
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<Error | null>(null);
 
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const dashboardData = await dashboardService.getFullDashboard();
+      setData(dashboardData);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error("Failed to fetch dashboard")
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!enabled) return;
-
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const dashboardData = await dashboardService.getFullDashboard();
-        setData(dashboardData);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error("Failed to fetch dashboard")
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchDashboard();
 
@@ -39,7 +39,12 @@ export function useDashboard(options: UseDashboardOptions = {}) {
     return () => clearInterval(interval);
   }, [enabled, refetchInterval]);
 
-  return { data, loading, error, refetch: () => {} };
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchDashboard,
+  };
 }
 
 export function usePendingDocuments(limit: number = 5) {
@@ -107,7 +112,9 @@ export function useNotifications(limit: number = 5) {
         setData(notifications);
       } catch (err) {
         setError(
-          err instanceof Error ? err : new Error("Failed to fetch notifications")
+          err instanceof Error
+            ? err
+            : new Error("Failed to fetch notifications")
         );
       } finally {
         setLoading(false);

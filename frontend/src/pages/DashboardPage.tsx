@@ -1,5 +1,6 @@
 import { useDashboard } from "@/hooks/useDashboard";
-import { useAuthStore, useUserRole } from "@/stores/authStore";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useAuthHooks";
 import { StatsCard } from "@/components/common/StatsCard";
 import {
   FileText,
@@ -14,9 +15,9 @@ import { UserRole } from "@/types/auth";
 import { ApproverOnly } from "@/components/auth/RoleGuard";
 
 export function DashboardPage() {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const userRole = useUserRole();
-  const { data: dashboardData, loading } = useDashboard();
+  const { data: dashboardData, loading, error } = useDashboard();
 
   if (loading) {
     return (
@@ -24,6 +25,18 @@ export function DashboardPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-red-600">
+            Error loading dashboard: {error.message}
+          </p>
         </div>
       </div>
     );
@@ -46,55 +59,150 @@ export function DashboardPage() {
         <StatsCard
           title="Total Documents"
           value={dashboardData?.totalDocuments || 0}
-          description="All documents in system"
           icon={FileText}
+          description="All documents in system"
         />
-
-        <ApproverOnly>
-          <StatsCard
-            title="Pending Approval"
-            value={dashboardData?.pendingDocuments || 0}
-            description="Awaiting your review"
-            icon={Clock}
-            className="border-orange-200 bg-orange-50"
-          />
-        </ApproverOnly>
-
         <StatsCard
           title="Approved"
           value={dashboardData?.approvedDocuments || 0}
-          description="Successfully approved"
           icon={CheckCircle}
-          className="border-green-200 bg-green-50"
+          description="Successfully approved"
+          className="text-green-600"
         />
-
         <StatsCard
-          title="Active Cases"
-          value={dashboardData?.activeCases || 0}
-          description="Currently in progress"
-          icon={Briefcase}
+          title="Pending"
+          value={dashboardData?.pendingDocumentsCount || 0}
+          icon={Clock}
+          description="Awaiting approval"
+          className="text-yellow-600"
+        />
+        <StatsCard
+          title="Rejected"
+          value={dashboardData?.rejectedDocuments || 0}
+          icon={XCircle}
+          description="Rejected documents"
+          className="text-red-600"
         />
       </div>
 
       {/* Role-specific content */}
-      {(userRole === UserRole.CEO || userRole === UserRole.CFO) && (
+      <ApproverOnly>
         <div className="grid gap-4 md:grid-cols-2">
           <StatsCard
-            title="Total Cases"
-            value={dashboardData?.totalCases || 0}
-            description="All cases in system"
-            icon={TrendingUp}
+            title="Active Cases"
+            value={dashboardData?.activeCases || 0}
+            icon={Briefcase}
+            description="Cases requiring attention"
           />
           <StatsCard
-            title="Unread Messages"
-            value={dashboardData?.unreadCommunications || 0}
-            description="New communications"
+            title="Messages"
+            value={dashboardData?.unreadMessages || 0}
             icon={MessageSquare}
+            description="Unread communications"
           />
+        </div>
+      </ApproverOnly>
+
+      {/* Executive Dashboard */}
+      {userRole && [UserRole.CEO, UserRole.CFO].includes(userRole) && (
+        <div className="mt-6">
+          <h2 className="text-2xl font-bold mb-4">Executive Overview</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <StatsCard
+              title="Monthly Growth"
+              value={`${dashboardData?.monthlyGrowth || 0}%`}
+              icon={TrendingUp}
+              description="Document processing growth"
+              className="text-blue-600"
+            />
+            <StatsCard
+              title="Processing Time"
+              value={`${dashboardData?.avgProcessingTime || 0}h`}
+              icon={Clock}
+              description="Average processing time"
+            />
+            <StatsCard
+              title="Efficiency"
+              value={`${dashboardData?.efficiency || 0}%`}
+              icon={CheckCircle}
+              description="Overall system efficiency"
+              className="text-green-600"
+            />
+          </div>
         </div>
       )}
 
-      {/* Quick Actions or Recent Activity could go here */}
+      {/* Dashboard Widgets */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Pending Documents Widget */}
+        <div className="bg-card rounded-lg border p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Recent Pending Documents
+          </h3>
+          <div className="space-y-2">
+            {dashboardData?.pendingDocumentsList?.slice(0, 5).map((doc) => (
+              <div
+                key={doc.id}
+                className="flex justify-between items-center text-sm"
+              >
+                <span className="truncate">{doc.title}</span>
+                <span className="text-muted-foreground">{doc.status}</span>
+              </div>
+            )) || (
+              <p className="text-muted-foreground text-sm">
+                No pending documents
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Assigned Cases Widget */}
+        <div className="bg-card rounded-lg border p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Briefcase className="h-5 w-5" />
+            Recent Assigned Cases
+          </h3>
+          <div className="space-y-2">
+            {dashboardData?.assignedCasesList?.slice(0, 5).map((caseItem) => (
+              <div
+                key={caseItem.id}
+                className="flex justify-between items-center text-sm"
+              >
+                <span className="truncate">{caseItem.title}</span>
+                <span className="text-muted-foreground">{caseItem.status}</span>
+              </div>
+            )) || (
+              <p className="text-muted-foreground text-sm">No assigned cases</p>
+            )}
+          </div>
+        </div>
+
+        {/* Communications Widget */}
+        <div className="bg-card rounded-lg border p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Recent Communications
+          </h3>
+          <div className="space-y-2">
+            {dashboardData?.unreadCommunicationsList
+              ?.slice(0, 5)
+              .map((comm) => (
+                <div
+                  key={comm.id}
+                  className="flex justify-between items-center text-sm"
+                >
+                  <span className="truncate">{comm.content}</span>
+                  <span className="text-muted-foreground">{comm.type}</span>
+                </div>
+              )) || (
+              <p className="text-muted-foreground text-sm">
+                No recent communications
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

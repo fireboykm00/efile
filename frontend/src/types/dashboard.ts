@@ -1,19 +1,19 @@
-export interface DashboardSummary {
-  totalDocuments: number;
-  pendingDocuments: number;
-  approvedDocuments: number;
-  rejectedDocuments: number;
-  totalCases: number;
-  activeCases: number;
-  closedCases: number;
-  unreadCommunications: number;
-}
+// This file is now consolidated into dashboardService.ts
+// Keeping only additional types that might be needed
 
 export interface DashboardStats {
   label: string;
   value: number;
   change?: number;
-  changeType?: 'increase' | 'decrease';
+  changeType?: "increase" | "decrease";
   icon?: string;
 }
 
+export interface DashboardWidget {
+  id: string;
+  title: string;
+  type: "stat" | "chart" | "list";
+  data: any;
+  loading?: boolean;
+  error?: string;
+}

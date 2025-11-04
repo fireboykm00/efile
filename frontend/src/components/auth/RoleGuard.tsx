@@ -1,4 +1,4 @@
-import { useUserRole, useHasAnyRole } from "@/stores/authStore";
+import { useHasAnyRole } from "@/hooks/useAuthHooks";
 import { UserRole } from "@/types/auth";
 
 interface RoleGuardProps {
@@ -41,4 +41,3 @@ export function ApproverOnly({ children, fallback }: Omit<RoleGuardProps, "roles
     </RoleGuard>
   );
 }
-

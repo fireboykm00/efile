@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -13,55 +13,54 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, LogOut, Settings } from "lucide-react";
 
 export function Header() {
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
-  const userInitials = user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || "U";
+  const userInitials =
+    user?.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "U";
 
   return (
-    <header className="border-b bg-white sticky top-0 z-40">
-      <div className="flex justify-between items-center px-6 py-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-primary">E-File Connect</h1>
-        </div>
-
-        <div className="flex items-center gap-4">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 items-center px-4">
+        <div className="ml-auto flex items-center space-x-4">
           {/* Notifications */}
           <Button variant="ghost" size="icon">
-            <Bell className="w-5 h-5" />
+            <Bell className="h-4 w-4" />
           </Button>
 
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
                   <AvatarFallback>{userInitials}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>Profile</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>

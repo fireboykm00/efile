@@ -3,26 +3,19 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  expiresIn: number;
-}
-
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
 export interface User {
   id: number;
   name: string;
   email: string;
   role: UserRole;
-  departmentId?: number;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  user: User | null;
+  token: string | null;
 }
 
 export enum UserRole {
@@ -37,6 +30,8 @@ export enum UserRole {
 }
 
 export interface UserSummaryResponse {
-  user: User;
-  permissions: string[];
+  id: number;
+  name: string;
+  email: string;
+  role: string;
 }

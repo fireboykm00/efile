@@ -16,7 +16,6 @@ const statusColors: Record<string, string> = {
   [CaseStatus.OPEN]: "bg-red-100 text-red-800",
   [CaseStatus.IN_PROGRESS]: "bg-blue-100 text-blue-800",
   [CaseStatus.CLOSED]: "bg-green-100 text-green-800",
-  [CaseStatus.ARCHIVED]: "bg-gray-100 text-gray-800",
 };
 
 interface WidgetProps {
@@ -55,9 +54,7 @@ export function PendingDocumentsWidget({
                     {format(new Date(doc.createdAt), "MMM d, yyyy")}
                   </p>
                 </div>
-                <Badge className={statusColors[doc.status]}>
-                  {doc.status}
-                </Badge>
+                <Badge className={statusColors[doc.status]}>{doc.status}</Badge>
               </div>
             ))
           )}
@@ -86,21 +83,20 @@ export function AssignedCasesWidget({
       <CardContent>
         <div className="space-y-3">
           {cases.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No assigned cases
-            </p>
+            <p className="text-sm text-muted-foreground">No assigned cases</p>
           ) : (
             cases.map((caseItem) => (
-              <div key={caseItem.id} className="flex justify-between items-start">
+              <div
+                key={caseItem.id}
+                className="flex justify-between items-start"
+              >
                 <div className="flex-1">
                   <p className="font-medium text-sm">{caseItem.title}</p>
                   <p className="text-xs text-muted-foreground">
                     {format(new Date(caseItem.createdAt), "MMM d, yyyy")}
                   </p>
                 </div>
-                <Badge
-                  className={statusColors[caseItem.status]}
-                >
+                <Badge className={statusColors[caseItem.status]}>
                   {caseItem.status}
                 </Badge>
               </div>

@@ -8,13 +8,32 @@ export interface DashboardSummary {
   assignedCasesCount: number;
   unreadCommunicationsCount: number;
   overdueCasesCount: number;
+  totalDocuments: number;
+  approvedDocuments: number;
+  rejectedDocuments: number;
+  activeCases: number;
+  unreadMessages: number;
+  // Executive metrics
+  monthlyGrowth?: number;
+  avgProcessingTime?: number;
+  efficiency?: number;
 }
 
 export interface DashboardData {
   summary: DashboardSummary;
-  pendingDocuments: Document[];
-  assignedCases: Case[];
-  unreadCommunications: Communication[];
+  pendingDocumentsList: Document[];
+  assignedCasesList: Case[];
+  unreadCommunicationsList: Communication[];
+  // Flattened summary data for easier access
+  totalDocuments: number;
+  approvedDocuments: number;
+  rejectedDocuments: number;
+  pendingDocumentsCount: number;
+  activeCases: number;
+  unreadMessages: number;
+  monthlyGrowth?: number;
+  avgProcessingTime?: number;
+  efficiency?: number;
 }
 
 export const dashboardService = {
@@ -61,11 +80,22 @@ export const dashboardService = {
         this.getNotifications(),
       ]);
 
+    // Flatten the data structure for easier component access
     return {
       summary,
-      pendingDocuments,
-      assignedCases,
-      unreadCommunications,
+      pendingDocumentsList: pendingDocuments,
+      assignedCasesList: assignedCases,
+      unreadCommunicationsList: unreadCommunications,
+      // Flattened summary data
+      totalDocuments: summary.totalDocuments,
+      approvedDocuments: summary.approvedDocuments,
+      rejectedDocuments: summary.rejectedDocuments,
+      pendingDocumentsCount: summary.pendingDocumentsCount,
+      activeCases: summary.activeCases,
+      unreadMessages: summary.unreadMessages,
+      monthlyGrowth: summary.monthlyGrowth,
+      avgProcessingTime: summary.avgProcessingTime,
+      efficiency: summary.efficiency,
     };
   },
 };

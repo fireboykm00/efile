@@ -1,10 +1,9 @@
-import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types/auth";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children: React.ReactNode;
   requiredRoles?: UserRole[];
   fallbackPath?: string;
 }
@@ -14,7 +13,7 @@ export function ProtectedRoute({
   requiredRoles,
   fallbackPath = "/login",
 }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
 
   // Check if user is authenticated
@@ -26,7 +25,7 @@ export function ProtectedRoute({
   // Check if user has required roles (if specified)
   if (requiredRoles && requiredRoles.length > 0) {
     if (!user?.role || !requiredRoles.includes(user.role)) {
-      // User doesn't have required role, redirect to unauthorized or dashboard
+      // User doesn't have required role, redirect to dashboard
       return <Navigate to="/dashboard" replace />;
     }
   }
