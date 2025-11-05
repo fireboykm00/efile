@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useCases } from "@/hooks/useCases";
 import { useUserRole } from "@/hooks/useAuthHooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +12,6 @@ import { format } from "date-fns";
 import { Download, Eye, CheckCircle, XCircle, Receipt, Send, Play, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { documentService } from "@/services/documentService";
-
-// Mock cases - replace with actual API call
-const mockCases = [
-  { id: "1", title: "Case 1: Smith vs. Jones" },
-  { id: "2", title: "Case 2: Financial Audit 2025" },
-];
 
 const statusColors: Record<string, string> = {
   [DocumentStatus.DRAFT]: "bg-gray-100 text-gray-800",
@@ -29,6 +24,7 @@ const statusColors: Record<string, string> = {
 
 export function DocumentsPage() {
   const { data, loading, error, refetch, approveDocument, rejectDocument } = useDocuments();
+  const { data: casesData } = useCases();
   const userRole = useUserRole();
   const [selectedStatus, setSelectedStatus] = useState<DocumentStatus | "ALL">(
     "ALL"
@@ -36,6 +32,13 @@ export function DocumentsPage() {
   const [isRejecting, setIsRejecting] = useState<string | null>(null);
 
   const documents = data?.documents || [];
+  const cases = casesData?.cases || [];
+  
+  // Transform cases for the form
+  const caseOptions = cases.map(caseItem => ({
+    id: caseItem.id,
+    title: caseItem.title
+  }));
   const filteredDocs =
     selectedStatus === "ALL"
       ? documents
@@ -49,7 +52,7 @@ export function DocumentsPage() {
       await approveDocument(documentId);
       toast.success("Document approved successfully");
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to approve document");
     }
   };
@@ -63,7 +66,7 @@ export function DocumentsPage() {
       await rejectDocument(documentId, reason);
       toast.success("Document rejected successfully");
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to reject document");
     } finally {
       setIsRejecting(null);
@@ -75,7 +78,7 @@ export function DocumentsPage() {
       await documentService.submitDocument(documentId);
       toast.success("Document submitted for review");
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit document");
     }
   };
@@ -85,7 +88,7 @@ export function DocumentsPage() {
       await documentService.startReview(documentId);
       toast.success("Document review started");
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to start review");
     }
   };
@@ -97,7 +100,7 @@ export function DocumentsPage() {
       await documentService.withdrawDocument(documentId);
       toast.success("Document withdrawn");
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to withdraw document");
     }
   };
@@ -126,7 +129,7 @@ export function DocumentsPage() {
       document.body.removeChild(a);
       
       toast.success("Receipt downloaded successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to download receipt");
     }
   };
@@ -140,7 +143,7 @@ export function DocumentsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <DocumentUploadForm cases={mockCases} onSuccess={refetch} />
+          <DocumentUploadForm cases={caseOptions} onSuccess={refetch} />
         </div>
 
         <div className="lg:col-span-2">

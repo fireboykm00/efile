@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   FileText,
   Briefcase,
+  CheckSquare,
   Users,
   BarChart3,
   LogOut,
@@ -38,6 +39,11 @@ const navItems: NavItem[] = [
     icon: Briefcase,
     label: "Cases",
     href: "/cases",
+  },
+  {
+    icon: CheckSquare,
+    label: "Assigned Cases",
+    href: "/my-tasks",
   },
   {
     icon: BarChart3,

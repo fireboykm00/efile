@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { DocumentsPage } from "@/pages/DocumentsPage";
 import { CasesPage } from "@/pages/CasesPage";
+import { MyTasksPage } from "@/pages/MyTasksPage";
 import { CaseDetailPage } from "@/components/cases/CaseDetailPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { ProfilePage } from "@/pages/ProfilePage";
@@ -57,6 +58,7 @@ function AppContent() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/cases" element={<CasesPage />} />
+            <Route path="/my-tasks" element={<MyTasksPage />} />
             <Route path="/cases/:id" element={<CaseDetailPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
