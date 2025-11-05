@@ -6,11 +6,9 @@ import {
   LayoutDashboard,
   FileText,
   Briefcase,
-  MessageSquare,
   Users,
   BarChart3,
   LogOut,
-  Shield,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,11 +39,6 @@ const navItems: NavItem[] = [
     href: "/cases",
   },
   {
-    icon: MessageSquare,
-    label: "Communications",
-    href: "/communications",
-  },
-  {
     icon: BarChart3,
     label: "Reports",
     href: "/reports",
@@ -55,12 +48,6 @@ const navItems: NavItem[] = [
     icon: Users,
     label: "User Management",
     href: "/admin",
-    roles: [UserRole.ADMIN],
-  },
-  {
-    icon: Shield,
-    label: "Register User",
-    href: "/register",
     roles: [UserRole.ADMIN],
   },
 ];

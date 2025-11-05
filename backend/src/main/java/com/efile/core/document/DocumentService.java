@@ -9,7 +9,6 @@ import com.efile.core.storage.FileStorageService;
 import com.efile.core.user.User;
 import com.efile.core.user.UserRepository;
 import com.efile.core.user.UserRole;
-import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +21,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -110,6 +110,7 @@ public class DocumentService {
         return toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public Page<DocumentResponse> searchDocuments(DocumentSearchCriteria criteria, Pageable pageable) {
         Specification<Document> specification = Specification.where(null);
         if (criteria.status().isPresent()) {
@@ -134,11 +135,13 @@ public class DocumentService {
         return documentRepository.findAll(specification, pageable).map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public DocumentResponse getDocument(Long documentId) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new IllegalArgumentException("Document not found"));
         return toResponse(document);
     }
 
+    @Transactional(readOnly = true)
     public List<DocumentHistoryResponse> getHistory(Long documentId) {
         documentRepository.findById(documentId).orElseThrow(() -> new IllegalArgumentException("Document not found"));
         return historyRepository
@@ -148,11 +151,13 @@ public class DocumentService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Resource download(Long documentId) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new IllegalArgumentException("Document not found"));
         return fileStorageService.loadAsResource(document.getFilePath());
     }
 
+    @Transactional(readOnly = true)
     public List<DocumentResponse> getDocumentsByCase(Long caseId) {
         Case caseEntity = caseRepository.findById(caseId)
             .orElseThrow(() -> new IllegalArgumentException("Case not found with id: " + caseId));

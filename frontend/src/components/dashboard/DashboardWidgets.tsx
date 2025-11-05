@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Document, DocumentStatus } from "@/types/document";
 import { Case, CaseStatus } from "@/types/case";
 import { Communication } from "@/types/communication";
+import { DashboardSummary } from "@/services/dashboardService";
 import { FileText, Briefcase, MessageSquare, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
@@ -51,7 +52,7 @@ export function PendingDocumentsWidget({
                 <div className="flex-1">
                   <p className="font-medium text-sm">{doc.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(doc.createdAt), "MMM d, yyyy")}
+                    {format(new Date(doc.createdAt!), "MMM d, yyyy")}
                   </p>
                 </div>
                 <Badge className={statusColors[doc.status]}>{doc.status}</Badge>
@@ -133,7 +134,7 @@ export function NotificationsWidget({
           ) : (
             communications.map((comm) => (
               <div key={comm.id} className="flex gap-3 p-2 bg-slate-50 rounded">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-primary" />
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-primary" />
                 <div className="flex-1">
                   <p className="text-sm">{comm.content}</p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -149,7 +150,11 @@ export function NotificationsWidget({
   );
 }
 
-export function SummaryCards({ summary }: any) {
+interface SummaryCardsProps {
+  summary: DashboardSummary;
+}
+
+export function SummaryCards({ summary }: SummaryCardsProps) {
   const summaryData = [
     {
       title: "Pending Documents",

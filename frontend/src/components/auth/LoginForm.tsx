@@ -13,8 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Mail, Lock } from "lucide-react";
-import { AuthService } from "@/services/authService";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -29,7 +28,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { setError, clearError, login } = useAuthStore();
+  const { login, error, clearError } = useAuth();
 
   const {
     register,
@@ -44,18 +43,10 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
     clearError();
 
     try {
-      await AuthService.login(data);
-
-      // Get user data after successful login
-      const userData = await AuthService.getCurrentUser();
-
-      // Update auth store
-      login(userData.user);
-
+      await login(data);
       onLoginSuccess();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Login failed";
-      setError(message);
+    } catch {
+      // Error is handled by AuthContext
     } finally {
       setIsLoading(false);
     }
@@ -115,9 +106,9 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
           </Button>
         </form>
 
-        {useAuthStore.getState().error && (
+        {error && (
           <div className="mt-4 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
-            {useAuthStore.getState().error}
+            {error}
           </div>
         )}
       </CardContent>

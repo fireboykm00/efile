@@ -26,15 +26,20 @@ export interface Document {
   fileSize: number;
   status: DocumentStatus;
   caseId: string;
+  caseTitle?: string;
   case?: Case;
   uploadedById: string;
+  uploadedByName?: string;
   uploadedBy?: User;
   approvedById?: string;
+  approvedByName?: string;
   approvedBy?: User;
   rejectionReason?: string;
   receiptNumber?: string;
-  createdAt: string;
-  updatedAt: string;
+  uploadedAt: Date;
+  processedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface DocumentSearchQuery {

@@ -12,7 +12,7 @@ import { DocumentsPage } from "@/pages/DocumentsPage";
 import { CasesPage } from "@/pages/CasesPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { ProfilePage } from "@/pages/ProfilePage";
-import { RegisterPage } from "@/pages/RegisterPage";
+import { ReportsPage } from "@/pages/ReportsPage";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Toaster } from "sonner";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -56,9 +56,9 @@ function AppContent() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/cases" element={<CasesPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminPage />} />
-            <Route path="/register" element={<RegisterPage />} />
           </Route>
 
           {/* Default redirect */}

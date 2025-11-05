@@ -3,27 +3,41 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserPlus, ArrowLeft } from "lucide-react";
 import { UserRole } from "@/types/auth";
 import { AuthService } from "@/services/authService";
 
-const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-  role: z.nativeEnum(UserRole),
-  departmentId: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(12, "Password must be at least 12 characters"),
+    confirmPassword: z.string(),
+    role: z.nativeEnum(UserRole),
+    departmentId: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -51,7 +65,9 @@ export function RegisterPage() {
         email: data.email,
         password: data.password,
         role: data.role,
-        departmentId: data.departmentId ? parseInt(data.departmentId) : undefined,
+        departmentId: data.departmentId
+          ? parseInt(data.departmentId)
+          : undefined,
       });
       toast.success("User registered successfully");
       navigate("/admin");
@@ -95,7 +111,9 @@ export function RegisterPage() {
                   disabled={isLoading}
                 />
                 {errors.name && (
-                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
 
@@ -109,7 +127,9 @@ export function RegisterPage() {
                   disabled={isLoading}
                 />
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -123,7 +143,9 @@ export function RegisterPage() {
                   disabled={isLoading}
                 />
                 {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
 
@@ -161,7 +183,9 @@ export function RegisterPage() {
                   </SelectContent>
                 </Select>
                 {errors.role && (
-                  <p className="text-sm text-destructive">{errors.role.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.role.message}
+                  </p>
                 )}
               </div>
 
@@ -201,4 +225,3 @@ export function RegisterPage() {
     </div>
   );
 }
-

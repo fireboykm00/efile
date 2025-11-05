@@ -95,10 +95,10 @@ export function DashboardPage() {
             description="Cases requiring attention"
           />
           <StatsCard
-            title="Messages"
-            value={dashboardData?.unreadMessages || 0}
+            title="Active Cases"
+            value={dashboardData?.activeCases || 0}
             icon={MessageSquare}
-            description="Unread communications"
+            description="Cases in progress"
           />
         </div>
       </ApproverOnly>
@@ -178,28 +178,25 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Communications Widget */}
+        {/* System Status Widget */}
         <div className="bg-card rounded-lg border p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Recent Communications
+            System Status
           </h3>
           <div className="space-y-2">
-            {dashboardData?.unreadCommunicationsList
-              ?.slice(0, 5)
-              .map((comm) => (
-                <div
-                  key={comm.id}
-                  className="flex justify-between items-center text-sm"
-                >
-                  <span className="truncate">{comm.content}</span>
-                  <span className="text-muted-foreground">{comm.type}</span>
-                </div>
-              )) || (
-              <p className="text-muted-foreground text-sm">
-                No recent communications
-              </p>
-            )}
+            <div className="flex justify-between items-center text-sm">
+              <span>System Health</span>
+              <span className="text-green-600">Operational</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span>Last Backup</span>
+              <span className="text-muted-foreground">Today</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span>Active Users</span>
+              <span className="text-muted-foreground">5</span>
+            </div>
           </div>
         </div>
       </div>

@@ -13,10 +13,15 @@ export interface UserListResponse {
 
 export const userService = {
   async getUsers(role?: UserRole): Promise<UserListResponse> {
-    const response = await apiClient.get<UserListResponse>("/users", {
+    const response = await apiClient.get<User[]>("/users", {
       params: role ? { role } : {},
     });
-    return response.data;
+    // Backend returns List<UserResponse>, wrap it in UserListResponse format
+    const users = response.data || [];
+    return {
+      users,
+      total: users.length,
+    };
   },
 
   async getUserById(id: string): Promise<User> {

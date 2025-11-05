@@ -33,9 +33,13 @@ class ApiClient {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor for error handling
+    // Response interceptor for error handling and date parsing
     this.instance.interceptors.response.use(
-      (response: AxiosResponse) => response,
+      (response: AxiosResponse) => {
+        // Parse ISO date strings to Date objects
+        response.data = this.parseDates(response.data);
+        return response;
+      },
       async (error: AxiosError<{ message?: string; error?: string }>) => {
         // Handle 401 Unauthorized
         if (error.response?.status === 401) {
@@ -67,6 +71,35 @@ class ApiClient {
     }
   }
 
+  private parseDates(obj: unknown): unknown {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (typeof obj === "string") {
+      // Check if string is ISO 8601 date format
+      const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+      if (isoDateRegex.test(obj)) {
+        return new Date(obj);
+      }
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.parseDates(item));
+    }
+
+    if (typeof obj === "object") {
+      const parsed: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        parsed[key] = this.parseDates(value);
+      }
+      return parsed;
+    }
+
+    return obj;
+  }
+
   public async get<T>(
     url: string,
     params?: Record<string, unknown>
@@ -76,6 +109,17 @@ class ApiClient {
 
   public async post<T>(url: string, data?: unknown): Promise<AxiosResponse<T>> {
     return this.instance.post(url, data);
+  }
+
+  public async postFormData<T>(
+    url: string,
+    data: FormData
+  ): Promise<AxiosResponse<T>> {
+    return this.instance.post(url, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   }
 
   public async put<T>(url: string, data?: unknown): Promise<AxiosResponse<T>> {

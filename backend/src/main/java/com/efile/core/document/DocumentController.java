@@ -1,5 +1,6 @@
 package com.efile.core.document;
 
+import com.efile.core.common.PageResponse;
 import com.efile.core.document.dto.DocumentHistoryResponse;
 import com.efile.core.document.dto.DocumentResponse;
 import com.efile.core.document.dto.DocumentSearchCriteria;
@@ -49,7 +50,7 @@ public class DocumentController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<DocumentResponse>> search(
+    public ResponseEntity<PageResponse<DocumentResponse>> search(
         @RequestParam(value = "status", required = false) DocumentStatus status,
         @RequestParam(value = "type", required = false) DocumentType type,
         @RequestParam(value = "uploadedAfter", required = false) Instant uploadedAfter,
@@ -62,7 +63,7 @@ public class DocumentController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "uploadedAt"));
         DocumentSearchCriteria criteria = DocumentSearchCriteria.of(status, type, uploadedAfter, uploadedBefore, caseId, title);
         Page<DocumentResponse> result = documentService.searchDocuments(criteria, pageable);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(PageResponse.from(result));
     }
 
     @GetMapping("/{id}")

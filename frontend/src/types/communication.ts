@@ -12,9 +12,9 @@ export interface Communication {
   type: CommunicationType;
   content: string;
   isRead: boolean;
-  senderId: string;
+  senderId?: string;
   sender?: User;
-  recipientId: string;
+  recipientId?: string;
   recipient?: User;
   caseId?: string;
   case?: Case;

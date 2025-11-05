@@ -61,7 +61,7 @@ public class AuthController {
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
             // Fetch the full User entity from database
-            User user = userRepository.findById(userPrincipal.getId())
+            User user = userRepository.findById(userPrincipal.getId().longValue())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
             return ResponseEntity.ok(LoginResponse.UserData.from(user));

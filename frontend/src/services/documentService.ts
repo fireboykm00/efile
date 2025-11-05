@@ -1,5 +1,9 @@
 import { apiClient } from "./api";
-import { Document, DocumentSearchQuery, DocumentStatus } from "@/types/document";
+import {
+  Document,
+  DocumentSearchQuery,
+  DocumentStatus,
+} from "@/types/document";
 
 export interface DocumentListResponse {
   documents: Document[];
@@ -9,11 +13,20 @@ export interface DocumentListResponse {
 }
 
 export const documentService = {
-  async getDocuments(query?: DocumentSearchQuery): Promise<DocumentListResponse> {
-    const response = await apiClient.get<DocumentListResponse>("/documents", {
+  async getDocuments(
+    query?: DocumentSearchQuery
+  ): Promise<DocumentListResponse> {
+    const response = await apiClient.get<any>("/documents", {
       params: query,
     });
-    return response.data;
+    // Handle PageResponse format from backend
+    const pageData = response.data;
+    return {
+      documents: pageData.content || [],
+      total: pageData.totalElements || 0,
+      page: pageData.number || 0,
+      limit: pageData.size || 20,
+    };
   },
 
   async getDocumentById(id: string): Promise<Document> {
@@ -33,14 +46,10 @@ export const documentService = {
     formData.append("caseId", caseId);
     formData.append("file", file);
 
-    const response = await apiClient.post<Document>(
+    // Use instance directly to avoid Content-Type header override
+    const response = await apiClient.postFormData<Document>(
       "/documents/upload",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      formData
     );
     return response.data;
   },
@@ -53,7 +62,10 @@ export const documentService = {
   },
 
   async approveDocument(id: string): Promise<Document> {
-    const response = await apiClient.put<Document>(`/documents/${id}/approve`, {});
+    const response = await apiClient.put<Document>(
+      `/documents/${id}/approve`,
+      {}
+    );
     return response.data;
   },
 
@@ -64,7 +76,10 @@ export const documentService = {
     return response.data;
   },
 
-  async searchDocuments(query: string, filters?: Partial<DocumentSearchQuery>): Promise<DocumentListResponse> {
+  async searchDocuments(
+    query: string,
+    filters?: Partial<DocumentSearchQuery>
+  ): Promise<DocumentListResponse> {
     return this.getDocuments({
       ...filters,
       query,

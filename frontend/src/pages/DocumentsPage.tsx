@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
 import { useDocuments } from "@/hooks/useDocuments";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +24,9 @@ const statusColors: Record<string, string> = {
 
 export function DocumentsPage() {
   const { data, loading, error, refetch } = useDocuments();
-  const [selectedStatus, setSelectedStatus] = useState<DocumentStatus | "ALL">("ALL");
+  const [selectedStatus, setSelectedStatus] = useState<DocumentStatus | "ALL">(
+    "ALL"
+  );
 
   const documents = data?.documents || [];
   const filteredDocs =
@@ -34,79 +35,79 @@ export function DocumentsPage() {
       : documents.filter((doc) => doc.status === selectedStatus);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Documents</h1>
-          <p className="text-muted-foreground">Manage and track all documents</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Documents</h1>
+        <p className="text-muted-foreground">Manage and track all documents</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <DocumentUploadForm cases={mockCases} onSuccess={refetch} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <DocumentUploadForm cases={mockCases} onSuccess={refetch} />
-          </div>
-
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Documents List</CardTitle>
-                <div className="flex gap-2 mt-4">
-                  {["ALL", ...Object.values(DocumentStatus)].map((status) => (
-                    <Button
-                      key={status}
-                      variant={selectedStatus === status ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedStatus(status as any)}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Documents List</CardTitle>
+              <div className="flex gap-2 mt-4">
+                {["ALL", ...Object.values(DocumentStatus)].map((status) => (
+                  <Button
+                    key={status}
+                    variant={selectedStatus === status ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      setSelectedStatus(status as DocumentStatus | "ALL")
+                    }
+                  >
+                    {status}
+                  </Button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-muted-foreground">Loading documents...</p>
+              ) : error ? (
+                <p className="text-red-600">Error: {error.message}</p>
+              ) : filteredDocs.length === 0 ? (
+                <p className="text-muted-foreground">No documents found</p>
+              ) : (
+                <div className="space-y-3">
+                  {filteredDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="border rounded-lg p-4 flex justify-between items-start hover:bg-slate-50"
                     >
-                      {status}
-                    </Button>
+                      <div className="flex-1">
+                        <p className="font-medium">{doc.title}</p>
+                        <div className="flex gap-2 mt-2">
+                          <Badge variant="outline">{doc.type}</Badge>
+                          <Badge className={statusColors[doc.status]}>
+                            {doc.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {format(doc.uploadedAt, "MMM d, yyyy HH:mm")} •{" "}
+                          {doc.receiptNumber && `Receipt: ${doc.receiptNumber}`}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <p className="text-muted-foreground">Loading documents...</p>
-                ) : error ? (
-                  <p className="text-red-600">Error: {error.message}</p>
-                ) : filteredDocs.length === 0 ? (
-                  <p className="text-muted-foreground">No documents found</p>
-                ) : (
-                  <div className="space-y-3">
-                    {filteredDocs.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="border rounded-lg p-4 flex justify-between items-start hover:bg-slate-50"
-                      >
-                        <div className="flex-1">
-                          <p className="font-medium">{doc.title}</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline">{doc.type}</Badge>
-                            <Badge className={statusColors[doc.status]}>
-                              {doc.status}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {format(new Date(doc.createdAt), "MMM d, yyyy HH:mm")} •{" "}
-                            {doc.receiptNumber && `Receipt: ${doc.receiptNumber}`}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

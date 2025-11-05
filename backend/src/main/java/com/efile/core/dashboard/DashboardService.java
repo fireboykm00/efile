@@ -14,15 +14,19 @@ import org.springframework.transaction.annotation.Transactional;
 import com.efile.core.casemanagement.Case;
 import com.efile.core.casemanagement.CaseRepository;
 import com.efile.core.casemanagement.CaseStatus;
+import com.efile.core.casemanagement.dto.CaseResponse;
 import com.efile.core.communication.Communication;
 import com.efile.core.communication.CommunicationRepository;
+import com.efile.core.communication.dto.CommunicationResponse;
 import com.efile.core.dashboard.dto.DashboardSummary;
 import com.efile.core.document.Document;
 import com.efile.core.document.DocumentRepository;
 import com.efile.core.document.DocumentStatus;
+import com.efile.core.document.dto.DocumentResponse;
 import com.efile.core.user.User;
 import com.efile.core.user.UserRepository;
 import com.efile.core.user.UserRole;
+import com.efile.core.user.dto.UserSummary;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -85,22 +89,25 @@ public class DashboardService {
         );
     }
 
-    public List<Document> getPendingDocuments() {
+    public List<DocumentResponse> getPendingDocuments() {
         User currentUser = getCurrentUser();
-        
+
         // Only CEO, CFO, and ADMIN can approve documents
-        if (currentUser.getRole() == UserRole.CEO || 
-            currentUser.getRole() == UserRole.CFO || 
+        if (currentUser.getRole() == UserRole.CEO ||
+            currentUser.getRole() == UserRole.CFO ||
             currentUser.getRole() == UserRole.ADMIN) {
-            
+
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "uploadedAt"));
-            return documentRepository.findByStatus(DocumentStatus.PENDING, pageable).getContent();
+            return documentRepository.findByStatus(DocumentStatus.PENDING, pageable).getContent()
+                .stream()
+                .map(this::mapDocumentToResponse)
+                .collect(Collectors.toList());
         }
-        
+
         return List.of();
     }
 
-    public List<Case> getAssignedCases() {
+    public List<CaseResponse> getAssignedCases() {
         User currentUser = getCurrentUser();
         Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "updatedAt"));
 
@@ -110,17 +117,24 @@ public class DashboardService {
             // Show all active cases
             return caseRepository.findAll(pageable).getContent().stream()
                 .filter(c -> c.getStatus() != CaseStatus.ARCHIVED)
+                .map(this::mapCaseToResponse)
                 .collect(Collectors.toList());
         } else {
             // Show only assigned cases
-            return caseRepository.findByAssignedToId(currentUser.getId(), pageable).getContent();
+            return caseRepository.findByAssignedToId(currentUser.getId(), pageable).getContent()
+                .stream()
+                .map(this::mapCaseToResponse)
+                .collect(Collectors.toList());
         }
     }
 
-    public List<Communication> getNotifications() {
+    public List<CommunicationResponse> getNotifications() {
         User currentUser = getCurrentUser();
         // Get unread communications for the current user, ordered by most recent first
-        return communicationRepository.findByRecipientIdOrderBySentAtDesc(currentUser.getId());
+        return communicationRepository.findByRecipientIdOrderBySentAtDesc(currentUser.getId())
+            .stream()
+            .map(this::mapCommunicationToResponse)
+            .collect(Collectors.toList());
     }
 
     private long getPendingDocumentsCount(User user) {
@@ -176,5 +190,68 @@ public class DashboardService {
         }
         long approved = documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements();
         return (double) (approved * 100) / totalProcessed;
+    }
+
+    private DocumentResponse mapDocumentToResponse(Document document) {
+        Long caseId = document.getCaseRef() != null ? document.getCaseRef().getId() : null;
+        String caseTitle = document.getCaseRef() != null ? document.getCaseRef().getTitle() : null;
+        Long uploadedById = document.getUploadedBy() != null ? document.getUploadedBy().getId() : null;
+        String uploadedByName = document.getUploadedBy() != null ? document.getUploadedBy().getName() : null;
+        Long approvedById = document.getApprovedBy() != null ? document.getApprovedBy().getId() : null;
+        String approvedByName = document.getApprovedBy() != null ? document.getApprovedBy().getName() : null;
+
+        return new DocumentResponse(
+            document.getId(),
+            document.getTitle(),
+            document.getType(),
+            document.getStatus(),
+            caseId,
+            caseTitle,
+            uploadedById,
+            uploadedByName,
+            approvedById,
+            approvedByName,
+            document.getFileSize(),
+            document.getFilePath(),
+            document.getReceiptNumber(),
+            document.getUploadedAt(),
+            document.getProcessedAt()
+        );
+    }
+
+    private CaseResponse mapCaseToResponse(Case caseEntity) {
+        return new CaseResponse(
+            caseEntity.getId(),
+            caseEntity.getTitle(),
+            caseEntity.getDescription(),
+            caseEntity.getStatus(),
+            caseEntity.getAssignedTo() != null ? mapToUserSummary(caseEntity.getAssignedTo()) : null,
+            mapToUserSummary(caseEntity.getCreatedBy()),
+            caseEntity.getCreatedAt(),
+            caseEntity.getUpdatedAt()
+        );
+    }
+
+    private CommunicationResponse mapCommunicationToResponse(Communication communication) {
+        return new CommunicationResponse(
+            communication.getId(),
+            communication.getType(),
+            communication.getContent(),
+            communication.isRead(),
+            mapToUserSummary(communication.getSender()),
+            mapToUserSummary(communication.getRecipient()),
+            communication.getCaseRef() != null ? communication.getCaseRef().getId() : null,
+            communication.getSentAt(),
+            communication.getReadAt()
+        );
+    }
+
+    private UserSummary mapToUserSummary(User user) {
+        return new UserSummary(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getRole().toString()
+        );
     }
 }

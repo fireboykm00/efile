@@ -1,5 +1,7 @@
 package com.efile.core.auth;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +25,8 @@ import jakarta.transaction.Transactional;
 @Service
 public class AuthService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
@@ -45,11 +49,17 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         try {
+            logger.info("Login attempt for email: {}", request.email());
+
             User user = userRepository
                 .findByEmailIgnoreCase(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+                .orElseThrow(() -> {
+                    logger.warn("User not found: {}", request.email());
+                    return new BadCredentialsException("Invalid credentials");
+                });
 
             if (!user.isActive()) {
+                logger.warn("Account inactive: {}", request.email());
                 throw new BadCredentialsException("Account is inactive");
             }
 
@@ -57,6 +67,8 @@ public class AuthService {
             UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(request.email(), request.password());
             authenticationManager.authenticate(authentication);
+
+            logger.info("User authenticated successfully: {}", request.email());
 
             // Generate JWT token using UserPrincipal
             UserPrincipal userPrincipal = UserPrincipal.from(user);
@@ -69,8 +81,10 @@ public class AuthService {
                 token
             );
         } catch (BadCredentialsException e) {
+            logger.warn("Bad credentials: {}", e.getMessage());
             return new LoginResponse(false, "Invalid credentials", null, null);
         } catch (Exception e) {
+            logger.error("Login failed", e);
             return new LoginResponse(false, "Login failed: " + e.getMessage(), null, null);
         }
     }
@@ -85,11 +99,11 @@ public class AuthService {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new IllegalArgumentException("Email already in use");
         }
-        
+
         Department department = null;
         if (request.departmentId() != null) {
             department = departmentRepository
-                .findById(request.departmentId())
+                .findById(request.departmentId().longValue())
                 .orElseThrow(() -> new IllegalArgumentException("Department not found"));
         }
         

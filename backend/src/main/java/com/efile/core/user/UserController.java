@@ -31,6 +31,12 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        UserResponse user = userService.getCurrent();
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','IT')")
     public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(name = "role", required = false) String role) {
@@ -65,12 +71,6 @@ public class UserController {
     public ResponseEntity<Void> deactivateUser(@PathVariable Long id) {
         userService.deactivate(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser() {
-        UserResponse user = userService.getCurrent();
-        return ResponseEntity.ok(user);
     }
 
     @PutMapping("/me")

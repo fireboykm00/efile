@@ -1,5 +1,10 @@
 import { apiClient } from "./api";
-import { Case, CreateCaseRequest, UpdateCaseRequest, CaseStatus } from "@/types/case";
+import {
+  Case,
+  CreateCaseRequest,
+  UpdateCaseRequest,
+  CaseStatus,
+} from "@/types/case";
 
 export interface CaseListResponse {
   cases: Case[];
@@ -9,11 +14,31 @@ export interface CaseListResponse {
 }
 
 export const caseService = {
-  async getCases(page = 1, limit = 10, status?: CaseStatus): Promise<CaseListResponse> {
-    const response = await apiClient.get<CaseListResponse>("/cases", {
-      params: { page, limit, status },
-    });
-    return response.data;
+  async getCases(
+    page = 1,
+    limit = 10,
+    status?: CaseStatus
+  ): Promise<CaseListResponse> {
+    // Backend doesn't support pagination parameters, returns all cases
+    const response = await apiClient.get<Case[]>("/cases");
+    // Backend returns List<CaseResponse>, wrap it in CaseListResponse format
+    const cases = response.data || [];
+
+    // Apply client-side filtering if status is provided
+    const filteredCases = status
+      ? cases.filter((c) => c.status === status)
+      : cases;
+
+    // Apply client-side pagination
+    const startIndex = (page - 1) * limit;
+    const paginatedCases = filteredCases.slice(startIndex, startIndex + limit);
+
+    return {
+      cases: paginatedCases,
+      total: filteredCases.length,
+      page,
+      limit,
+    };
   },
 
   async getCaseById(id: string): Promise<Case> {
@@ -36,7 +61,9 @@ export const caseService = {
   },
 
   async assignCase(id: string, userId: string): Promise<Case> {
-    const response = await apiClient.put<Case>(`/cases/${id}/assign`, { userId });
+    const response = await apiClient.put<Case>(`/cases/${id}/assign`, {
+      userId,
+    });
     return response.data;
   },
 

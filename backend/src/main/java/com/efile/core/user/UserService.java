@@ -7,7 +7,6 @@ import com.efile.core.user.dto.UpdateProfileRequest;
 import com.efile.core.user.dto.UpdateUserRequest;
 import com.efile.core.user.dto.UserResponse;
 import com.efile.core.user.dto.UserSummary;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -85,6 +85,7 @@ public class UserService {
         return toResponse(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponse> getAll(Optional<UserRole> role) {
         List<User> users = role.map(userRepository::findByRole).orElseGet(userRepository::findAll);
         return users.stream().map(this::toResponse).collect(Collectors.toList());
