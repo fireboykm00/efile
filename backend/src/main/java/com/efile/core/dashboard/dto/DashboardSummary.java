@@ -17,5 +17,8 @@ public record DashboardSummary(
     // Executive metrics (optional)
     Double monthlyGrowth,
     Double avgProcessingTime,
-    Double efficiency
+    Double efficiency,
+
+    // Admin-only metrics
+    Long totalUsers
 ) {}

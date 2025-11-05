@@ -60,7 +60,7 @@ public class Document {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private DocumentStatus status = DocumentStatus.PENDING;
+    private DocumentStatus status = DocumentStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "case_id", nullable = false)

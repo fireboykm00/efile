@@ -101,4 +101,36 @@ public class DocumentController {
         DocumentResponse response = documentService.rejectDocument(id, request.reason());
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{id}/submit")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<DocumentResponse> submit(@PathVariable Long id) {
+        DocumentResponse response = documentService.submitDocument(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/start-review")
+    @PreAuthorize("hasAnyRole('ADMIN','CEO','CFO','AUDITOR')")
+    public ResponseEntity<DocumentResponse> startReview(@PathVariable Long id) {
+        DocumentResponse response = documentService.startReview(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/withdraw")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<DocumentResponse> withdraw(@PathVariable Long id) {
+        DocumentResponse response = documentService.withdrawDocument(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/receipt")
+    public ResponseEntity<String> getReceipt(@PathVariable Long id) {
+        String receipt = documentService.generateReceiptDocument(id);
+        String filename = "receipt_" + id + ".txt";
+        
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(receipt);
+    }
 }

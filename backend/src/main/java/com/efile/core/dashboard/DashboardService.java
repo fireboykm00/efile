@@ -1,5 +1,6 @@
 package com.efile.core.dashboard;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,24 +55,26 @@ public class DashboardService {
     public DashboardSummary getDashboardSummary() {
         User currentUser = getCurrentUser();
 
-        // Basic counts
+        // Basic counts - role-specific
         long pendingDocumentsCount = getPendingDocumentsCount(currentUser);
         long assignedCasesCount = getAssignedCasesCount(currentUser);
         long unreadCommunicationsCount = communicationRepository.countByRecipientAndIsRead(currentUser, false);
-        long overdueCasesCount = 0; // TODO: Implement overdue calculation based on due dates
+        long overdueCasesCount = calculateOverdueCases(currentUser);
 
         // Extended metrics
-        long totalDocuments = documentRepository.count();
-        long approvedDocuments = documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements();
-        long rejectedDocuments = documentRepository.findByStatus(DocumentStatus.REJECTED, PageRequest.of(0, 1)).getTotalElements();
-        long activeCases = caseRepository.findByStatus(CaseStatus.OPEN).size() +
-                          caseRepository.findByStatus(CaseStatus.IN_PROGRESS).size();
+        long totalDocuments = getTotalDocumentsForRole(currentUser);
+        long approvedDocuments = getApprovedDocumentsForRole(currentUser);
+        long rejectedDocuments = getRejectedDocumentsForRole(currentUser);
+        long activeCases = getActiveCasesForRole(currentUser);
         long unreadMessages = unreadCommunicationsCount;
 
         // Executive metrics (calculated)
         Double monthlyGrowth = calculateMonthlyGrowth();
         Double avgProcessingTime = calculateAvgProcessingTime();
         Double efficiency = calculateEfficiency();
+
+        // Admin-only metrics
+        Long totalUsers = (currentUser.getRole() == UserRole.ADMIN) ? getTotalUsers() : null;
 
         return new DashboardSummary(
             pendingDocumentsCount,
@@ -85,7 +88,8 @@ public class DashboardService {
             unreadMessages,
             monthlyGrowth,
             avgProcessingTime,
-            efficiency
+            efficiency,
+            totalUsers
         );
     }
 
@@ -98,7 +102,7 @@ public class DashboardService {
             currentUser.getRole() == UserRole.ADMIN) {
 
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "uploadedAt"));
-            return documentRepository.findByStatus(DocumentStatus.PENDING, pageable).getContent()
+            return documentRepository.findByStatus(DocumentStatus.SUBMITTED, pageable).getContent()
                 .stream()
                 .map(this::mapDocumentToResponse)
                 .collect(Collectors.toList());
@@ -116,7 +120,7 @@ public class DashboardService {
             currentUser.getRole() == UserRole.CFO) {
             // Show all active cases
             return caseRepository.findAll(pageable).getContent().stream()
-                .filter(c -> c.getStatus() != CaseStatus.ARCHIVED)
+                .filter(c -> c.getStatus() != CaseStatus.CLOSED)
                 .map(this::mapCaseToResponse)
                 .collect(Collectors.toList());
         } else {
@@ -137,13 +141,17 @@ public class DashboardService {
             .collect(Collectors.toList());
     }
 
+    public Long getTotalUsers() {
+        return userRepository.count();
+    }
+
     private long getPendingDocumentsCount(User user) {
         if (user.getRole() == UserRole.CEO || 
             user.getRole() == UserRole.CFO || 
             user.getRole() == UserRole.ADMIN) {
             
             Pageable pageable = PageRequest.of(0, 1);
-            return documentRepository.findByStatus(DocumentStatus.PENDING, pageable).getTotalElements();
+            return documentRepository.findByStatus(DocumentStatus.SUBMITTED, pageable).getTotalElements();
         }
         return 0;
     }
@@ -153,10 +161,83 @@ public class DashboardService {
             user.getRole() == UserRole.CEO || 
             user.getRole() == UserRole.CFO) {
             return caseRepository.findByStatus(CaseStatus.OPEN).size() + 
-                   caseRepository.findByStatus(CaseStatus.IN_PROGRESS).size();
+                   caseRepository.findByStatus(CaseStatus.ACTIVE).size();
         } else {
             Pageable pageable = PageRequest.of(0, 1);
             return caseRepository.findByAssignedToId(user.getId(), pageable).getTotalElements();
+        }
+    }
+
+    private long calculateOverdueCases(User user) {
+        // Calculate cases older than 7 days that are still open/in_progress
+        Instant sevenDaysAgo = Instant.now().minus(7, java.time.temporal.ChronoUnit.DAYS);
+        
+        if (user.getRole() == UserRole.ADMIN || 
+            user.getRole() == UserRole.CEO || 
+            user.getRole() == UserRole.CFO) {
+            return caseRepository.findByStatusAndCreatedAtBefore(CaseStatus.OPEN, sevenDaysAgo).size() +
+                   caseRepository.findByStatusAndCreatedAtBefore(CaseStatus.ACTIVE, sevenDaysAgo).size();
+        } else {
+            return caseRepository.findByAssignedToIdAndStatusAndCreatedAtBefore(
+                user.getId(), CaseStatus.OPEN, sevenDaysAgo
+            ).size() + caseRepository.findByAssignedToIdAndStatusAndCreatedAtBefore(
+                user.getId(), CaseStatus.ACTIVE, sevenDaysAgo
+            ).size();
+        }
+    }
+
+    private long getTotalDocumentsForRole(User user) {
+        if (user.getRole() == UserRole.ADMIN || 
+            user.getRole() == UserRole.CEO || 
+            user.getRole() == UserRole.AUDITOR) {
+            return documentRepository.count();
+        } else if (user.getRole() == UserRole.CFO) {
+            // Financial documents only
+            return documentRepository.findByTypeContaining("financial", PageRequest.of(0, 1)).getTotalElements();
+        } else if (user.getRole() == UserRole.PROCUREMENT) {
+            // Procurement documents only
+            return documentRepository.findByTypeContaining("procurement", PageRequest.of(0, 1)).getTotalElements();
+        } else if (user.getRole() == UserRole.ACCOUNTANT) {
+            // Accounting documents only
+            return documentRepository.findByTypeContaining("accounting", PageRequest.of(0, 1)).getTotalElements();
+        } else {
+            // Investors and others see only approved documents
+            return documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements();
+        }
+    }
+
+    private long getApprovedDocumentsForRole(User user) {
+        if (user.getRole() == UserRole.ADMIN || 
+            user.getRole() == UserRole.CEO || 
+            user.getRole() == UserRole.AUDITOR) {
+            return documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements();
+        } else {
+            // Other roles see approved documents in their domain
+            return documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements();
+        }
+    }
+
+    private long getRejectedDocumentsForRole(User user) {
+        if (user.getRole() == UserRole.ADMIN || 
+            user.getRole() == UserRole.CEO || 
+            user.getRole() == UserRole.AUDITOR) {
+            return documentRepository.findByStatus(DocumentStatus.REJECTED, PageRequest.of(0, 1)).getTotalElements();
+        } else {
+            // Other roles see fewer rejected documents
+            return documentRepository.findByStatus(DocumentStatus.REJECTED, PageRequest.of(0, 1)).getTotalElements();
+        }
+    }
+
+    private long getActiveCasesForRole(User user) {
+        if (user.getRole() == UserRole.ADMIN || 
+            user.getRole() == UserRole.CEO || 
+            user.getRole() == UserRole.CFO) {
+            return caseRepository.findByStatus(CaseStatus.OPEN).size() + 
+                   caseRepository.findByStatus(CaseStatus.ACTIVE).size();
+        } else {
+            Pageable pageable = PageRequest.of(0, 1);
+            return caseRepository.findByAssignedToIdAndStatus(user.getId(), CaseStatus.OPEN, pageable).getTotalElements() +
+                   caseRepository.findByAssignedToIdAndStatus(user.getId(), CaseStatus.ACTIVE, pageable).getTotalElements();
         }
     }
 
@@ -168,28 +249,52 @@ public class DashboardService {
     }
 
     private Double calculateMonthlyGrowth() {
-        // Calculate percentage growth of documents processed this month vs last month
-        // For now, return a placeholder value
-        // TODO: Implement actual monthly growth calculation
-        return 0.0;
+        try {
+            Instant oneMonthAgo = Instant.now().minus(30, java.time.temporal.ChronoUnit.DAYS);
+            Instant twoMonthsAgo = Instant.now().minus(60, java.time.temporal.ChronoUnit.DAYS);
+            
+            long currentMonthDocs = documentRepository.findByUploadedAtAfter(oneMonthAgo).size();
+            long previousMonthDocs = documentRepository.findByUploadedAtBetween(twoMonthsAgo, oneMonthAgo).size();
+            
+            if (previousMonthDocs == 0) return 0.0;
+            return ((double)(currentMonthDocs - previousMonthDocs) / previousMonthDocs) * 100;
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
 
     private Double calculateAvgProcessingTime() {
-        // Calculate average time from upload to approval in hours
-        // For now, return a placeholder value
-        // TODO: Implement actual average processing time calculation
-        return 0.0;
+        try {
+            List<Document> processedDocs = documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+            if (processedDocs.isEmpty()) return 0.0;
+            
+            long totalMinutes = processedDocs.stream()
+                .filter(doc -> doc.getProcessedAt() != null)
+                .mapToLong(doc -> java.time.Duration.between(doc.getUploadedAt(), doc.getProcessedAt()).toMinutes())
+                .sum();
+            
+            return processedDocs.isEmpty() ? 0.0 : (double) totalMinutes / processedDocs.size() / 60; // Convert to hours
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
 
     private Double calculateEfficiency() {
-        // Calculate efficiency as percentage of approved documents vs total processed
-        long totalProcessed = documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements() +
-                             documentRepository.findByStatus(DocumentStatus.REJECTED, PageRequest.of(0, 1)).getTotalElements();
-        if (totalProcessed == 0) {
+        try {
+            long totalDocs = documentRepository.count();
+            if (totalDocs == 0) return 100.0;
+            
+            long approvedDocs = documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, Integer.MAX_VALUE)).getTotalElements();
+            long pendingDocs = documentRepository.findByStatus(DocumentStatus.SUBMITTED, PageRequest.of(0, Integer.MAX_VALUE)).getTotalElements();
+            
+            // Efficiency = (Approved / Total) * 100 - (Pending / Total) * 10 penalty
+            double efficiency = ((double) approvedDocs / totalDocs) * 100;
+            double pendingPenalty = ((double) pendingDocs / totalDocs) * 10;
+            
+            return Math.max(0, Math.min(100, efficiency - pendingPenalty));
+        } catch (Exception e) {
             return 0.0;
         }
-        long approved = documentRepository.findByStatus(DocumentStatus.APPROVED, PageRequest.of(0, 1)).getTotalElements();
-        return (double) (approved * 100) / totalProcessed;
     }
 
     private DocumentResponse mapDocumentToResponse(Document document) {
@@ -228,7 +333,8 @@ public class DashboardService {
             caseEntity.getAssignedTo() != null ? mapToUserSummary(caseEntity.getAssignedTo()) : null,
             mapToUserSummary(caseEntity.getCreatedBy()),
             caseEntity.getCreatedAt(),
-            caseEntity.getUpdatedAt()
+            caseEntity.getUpdatedAt(),
+            List.of() // Empty documents list for dashboard
         );
     }
 

@@ -1,9 +1,10 @@
 package com.efile.core.document;
 
 public enum DocumentStatus {
-    PENDING,
+    DRAFT,
+    SUBMITTED,
     UNDER_REVIEW,
     APPROVED,
     REJECTED,
-    ARCHIVED
+    WITHDRAWN
 }

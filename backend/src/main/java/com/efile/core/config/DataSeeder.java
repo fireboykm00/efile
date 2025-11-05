@@ -140,7 +140,7 @@ public class DataSeeder implements CommandLineRunner {
                 Case case2 = new Case();
                 case2.setTitle("Budget Allocation - Finance");
                 case2.setDescription("Annual budget allocation for Finance department");
-                case2.setStatus(CaseStatus.IN_PROGRESS);
+                case2.setStatus(CaseStatus.ACTIVE);
                 case2.setCreatedBy(admin);
                 case2.setAssignedTo(ceo);
                 caseRepository.save(case2);
@@ -161,7 +161,7 @@ public class DataSeeder implements CommandLineRunner {
                 doc1.setType(DocumentType.LEGAL_DOCUMENT);
                 doc1.setFilePath("/uploads/contracts/contract_q1_2024.pdf");
                 doc1.setFileSize(1024000L);
-                doc1.setStatus(DocumentStatus.PENDING);
+                doc1.setStatus(DocumentStatus.DRAFT);
                 doc1.setCaseRef(case1);
                 doc1.setUploadedBy(admin);
                 doc1.setReceiptNumber("REC-2024-001");

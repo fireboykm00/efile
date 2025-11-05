@@ -2,6 +2,10 @@ package com.efile.core.casemanagement;
 
 import com.efile.core.casemanagement.dto.CaseRequest;
 import com.efile.core.casemanagement.dto.CaseResponse;
+import com.efile.core.document.Document;
+import com.efile.core.document.DocumentRepository;
+import com.efile.core.document.DocumentService;
+import com.efile.core.document.dto.DocumentResponse;
 import com.efile.core.user.User;
 import com.efile.core.user.UserRepository;
 import com.efile.core.user.UserRole;
@@ -21,10 +25,15 @@ public class CaseService {
 
     private final CaseRepository caseRepository;
     private final UserRepository userRepository;
+    private final DocumentRepository documentRepository;
+    private final DocumentService documentService;
 
-    public CaseService(CaseRepository caseRepository, UserRepository userRepository) {
+    public CaseService(CaseRepository caseRepository, UserRepository userRepository, 
+                      DocumentRepository documentRepository, DocumentService documentService) {
         this.caseRepository = caseRepository;
         this.userRepository = userRepository;
+        this.documentRepository = documentRepository;
+        this.documentService = documentService;
     }
 
     public CaseResponse createCase(CaseRequest request) {
@@ -115,11 +124,81 @@ public class CaseService {
             .orElseThrow(() -> new EntityNotFoundException("Case not found with id: " + id));
 
         checkCaseAccess(caseEntity);
-        caseEntity.setStatus(CaseStatus.ARCHIVED);
+        caseEntity.setStatus(CaseStatus.CLOSED);
         caseRepository.save(caseEntity);
     }
 
+    @Transactional(readOnly = true)
+    public CaseResponse getCaseWithDocuments(Long id) {
+        Case caseEntity = caseRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Case not found with id: " + id));
+        
+        checkCaseAccess(caseEntity);
+        
+        List<Document> documents = documentRepository.findByCaseRef(caseEntity);
+        List<DocumentResponse> documentResponses = documents.stream()
+            .map(documentService::toResponse)
+            .collect(Collectors.toList());
+        
+        return mapToResponseWithDocuments(caseEntity, documentResponses);
+    }
+
+    public CaseResponse updateCaseStatus(Long id, CaseStatus newStatus) {
+        Case caseEntity = caseRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Case not found with id: " + id));
+
+        checkCaseAccess(caseEntity);
+        validateCaseStatusTransition(caseEntity.getStatus(), newStatus);
+        
+        caseEntity.setStatus(newStatus);
+        Case updated = caseRepository.save(caseEntity);
+        return mapToResponseWithDocuments(updated, getDocumentsForCase(updated.getId()));
+    }
+
+    private List<DocumentResponse> getDocumentsForCase(Long caseId) {
+        List<Document> documents = documentRepository.findByCaseRefId(caseId);
+        return documents.stream()
+            .map(documentService::toResponse)
+            .collect(Collectors.toList());
+    }
+
+    private void validateCaseStatusTransition(CaseStatus currentStatus, CaseStatus newStatus) {
+        switch (currentStatus) {
+            case OPEN:
+                if (newStatus != CaseStatus.ACTIVE && newStatus != CaseStatus.CLOSED) {
+                    throw new IllegalStateException("Open cases can only be activated or closed");
+                }
+                break;
+            case ACTIVE:
+                if (newStatus != CaseStatus.UNDER_REVIEW && newStatus != CaseStatus.ON_HOLD && newStatus != CaseStatus.CLOSED) {
+                    throw new IllegalStateException("Active cases can only be moved to review, on hold, or closed");
+                }
+                break;
+            case UNDER_REVIEW:
+                if (newStatus != CaseStatus.COMPLETED && newStatus != CaseStatus.ACTIVE && newStatus != CaseStatus.CLOSED) {
+                    throw new IllegalStateException("Cases under review can only be completed, returned to active, or closed");
+                }
+                break;
+            case ON_HOLD:
+                if (newStatus != CaseStatus.ACTIVE && newStatus != CaseStatus.CLOSED) {
+                    throw new IllegalStateException("Cases on hold can only be reactivated or closed");
+                }
+                break;
+            case COMPLETED:
+                if (newStatus != CaseStatus.CLOSED) {
+                    throw new IllegalStateException("Completed cases can only be closed");
+                }
+                break;
+            case CLOSED:
+                throw new IllegalStateException("Closed cases cannot be changed");
+        }
+    }
+
     private CaseResponse mapToResponse(Case caseEntity) {
+        return mapToResponseWithDocuments(caseEntity, getDocumentsForCase(caseEntity.getId()));
+    }
+
+    private CaseResponse mapToResponseWithDocuments(Case caseEntity, List<DocumentResponse> documents) {
         return new CaseResponse(
             caseEntity.getId(),
             caseEntity.getTitle(),
@@ -128,7 +207,8 @@ public class CaseService {
             caseEntity.getAssignedTo() != null ? mapToUserSummary(caseEntity.getAssignedTo()) : null,
             mapToUserSummary(caseEntity.getCreatedBy()),
             caseEntity.getCreatedAt(),
-            caseEntity.getUpdatedAt()
+            caseEntity.getUpdatedAt(),
+            documents
         );
     }
 

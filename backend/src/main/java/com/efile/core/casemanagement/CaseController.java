@@ -49,7 +49,24 @@ public class CaseController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CaseResponse> getCase(@PathVariable Long id) {
-        CaseResponse caseResponse = caseService.getCaseById(id);
+        CaseResponse caseResponse = caseService.getCaseWithDocuments(id);
+        return ResponseEntity.ok(caseResponse);
+    }
+
+    @GetMapping("/{id}/details")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CaseResponse> getCaseWithDocuments(@PathVariable Long id) {
+        CaseResponse caseResponse = caseService.getCaseWithDocuments(id);
+        return ResponseEntity.ok(caseResponse);
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN','CEO','CFO')")
+    public ResponseEntity<CaseResponse> updateCaseStatus(
+        @PathVariable Long id,
+        @RequestBody CaseStatus newStatus
+    ) {
+        CaseResponse caseResponse = caseService.updateCaseStatus(id, newStatus);
         return ResponseEntity.ok(caseResponse);
     }
 

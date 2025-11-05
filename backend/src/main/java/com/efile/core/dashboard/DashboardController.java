@@ -47,6 +47,13 @@ public class DashboardController {
         return ResponseEntity.ok(cases.stream().limit(limit).toList());
     }
 
+    @GetMapping("/total-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Long> getTotalUsers() {
+        Long totalUsers = dashboardService.getTotalUsers();
+        return ResponseEntity.ok(totalUsers);
+    }
+
     @GetMapping("/notifications")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CommunicationResponse>> getNotifications(
