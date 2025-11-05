@@ -172,20 +172,3 @@ E-FileConnect enables GAH to manage all its digital document workflows securely 
 5. **Close Case:** When approved or finalized.
 
 ---
-
-## 7. Security Highlights
-- Role-based restrictions enforced both on frontend and backend.
-- Read-only access for external and audit roles.
-- Full traceability of all actions via audit logs.
-- Encrypted communication and session control.
-
----
-
-## 8. Future Role Expansion (Post-MVP)
-- **IT Administrator**: For technical configurations.
-- **Department Manager**: For advanced intra-department workflows.
-- **Mobile User Roles**: For future mobile version (executives and investors).
-
----
-
-*This refined user role specification ensures E-FileConnect remains lean, understandable, and scalable while maintaining clear boundaries for each participant in GAH’s document workflow ecosystem.*

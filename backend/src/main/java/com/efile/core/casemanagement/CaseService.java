@@ -10,7 +10,9 @@ import com.efile.core.user.User;
 import com.efile.core.user.UserRepository;
 import com.efile.core.user.UserRole;
 import com.efile.core.user.dto.UserSummary;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,13 +29,15 @@ public class CaseService {
     private final UserRepository userRepository;
     private final DocumentRepository documentRepository;
     private final DocumentService documentService;
+    private final ObjectMapper objectMapper;
 
     public CaseService(CaseRepository caseRepository, UserRepository userRepository, 
-                      DocumentRepository documentRepository, DocumentService documentService) {
+                      DocumentRepository documentRepository, DocumentService documentService, ObjectMapper objectMapper) {
         this.caseRepository = caseRepository;
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
         this.documentService = documentService;
+        this.objectMapper = objectMapper;
     }
 
     public CaseResponse createCase(CaseRequest request) {
@@ -43,11 +47,47 @@ public class CaseService {
         caseEntity.setTitle(request.title());
         caseEntity.setDescription(request.description());
         caseEntity.setStatus(request.status() != null ? request.status() : CaseStatus.OPEN);
+        caseEntity.setPriority(request.priority() != null ? request.priority() : CasePriority.MEDIUM);
+        caseEntity.setCategory(request.category() != null ? request.category() : CaseCategory.GENERAL);
         caseEntity.setCreatedBy(currentUser);
 
+        // Handle tags - store as JSON string
+        if (request.tags() != null && !request.tags().isEmpty()) {
+            try {
+                caseEntity.setTags(objectMapper.writeValueAsString(request.tags()));
+            } catch (Exception e) {
+                // Handle JSON serialization error
+                caseEntity.setTags("[]");
+            }
+        }
+
+        // Handle date fields
+        if (request.dueDate() != null && !request.dueDate().isEmpty()) {
+            try {
+                caseEntity.setDueDate(Instant.parse(request.dueDate()));
+            } catch (Exception e) {
+                // Handle date parsing error
+                caseEntity.setDueDate(null);
+            }
+        }
+
+        if (request.estimatedCompletionDate() != null && !request.estimatedCompletionDate().isEmpty()) {
+            try {
+                caseEntity.setEstimatedCompletionDate(Instant.parse(request.estimatedCompletionDate()));
+            } catch (Exception e) {
+                // Handle date parsing error
+                caseEntity.setEstimatedCompletionDate(null);
+            }
+        }
+
+        caseEntity.setBudget(request.budget());
+        caseEntity.setLocation(request.location());
+        caseEntity.setDepartment(request.department());
+
         if (request.assignedToId() != null) {
-            User assignedUser = userRepository.findById(request.assignedToId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + request.assignedToId()));
+            Long assignedId = request.assignedToId();
+            User assignedUser = userRepository.findById(assignedId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + assignedId));
             caseEntity.setAssignedTo(assignedUser);
         }
 
@@ -98,8 +138,9 @@ public class CaseService {
         }
 
         if (request.assignedToId() != null) {
-            User assignedUser = userRepository.findById(request.assignedToId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + request.assignedToId()));
+            Long assignedId = request.assignedToId();
+            User assignedUser = userRepository.findById(assignedId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + assignedId));
             caseEntity.setAssignedTo(assignedUser);
         }
 
@@ -199,11 +240,29 @@ public class CaseService {
     }
 
     private CaseResponse mapToResponseWithDocuments(Case caseEntity, List<DocumentResponse> documents) {
+        // Parse tags from JSON string
+        List<String> tags = List.of();
+        if (caseEntity.getTags() != null && !caseEntity.getTags().isEmpty()) {
+            try {
+                tags = objectMapper.readValue(caseEntity.getTags(), List.class);
+            } catch (Exception e) {
+                tags = List.of();
+            }
+        }
+
         return new CaseResponse(
             caseEntity.getId(),
             caseEntity.getTitle(),
             caseEntity.getDescription(),
             caseEntity.getStatus(),
+            caseEntity.getPriority(),
+            caseEntity.getCategory(),
+            tags,
+            caseEntity.getDueDate(),
+            caseEntity.getEstimatedCompletionDate(),
+            caseEntity.getBudget(),
+            caseEntity.getLocation(),
+            caseEntity.getDepartment(),
             caseEntity.getAssignedTo() != null ? mapToUserSummary(caseEntity.getAssignedTo()) : null,
             mapToUserSummary(caseEntity.getCreatedBy()),
             caseEntity.getCreatedAt(),

@@ -1,0 +1,187 @@
+# E-FileConnect User Roles Documentation
+
+## Overview
+
+E-FileConnect is a secure document management system designed for GAH (an agricultural company in Rwanda). The system supports multiple user roles with clear, simplified permissions. Each role is streamlined to avoid unnecessary complexity while maintaining an MVP-level feature set.
+
+---
+
+## User Roles and Permissions
+
+### 1. **ADMIN** (System Administrator)
+**Responsibilities:**
+- Manage user accounts and departments.
+- Monitor system security and access.
+- Generate reports and manage configurations.
+
+**Access:**
+- Full access to users, cases, documents, and reports.
+- Create/edit/deactivate users.
+- Access system analytics.
+
+**Typical Users:** IT Admins, System Managers
+
+---
+
+### 2. **CEO** (Chief Executive Officer)
+**Responsibilities:**
+- Oversee company-wide operations.
+- Approve key documents and monitor performance.
+- View reports and dashboards for decision-making.
+
+**Access:**
+- Dashboard with metrics and reports.
+- Document approval/rejection.
+- Access all document categories.
+
+**Workflow:**
+1. Login and review dashboard.
+2. Approve or reject pending files.
+3. View performance reports.
+
+---
+
+### 3. **CFO** (Chief Financial Officer)
+**Responsibilities:**
+- Manage financial and budget-related documents.
+- Approve transactions and oversee reports.
+
+**Access:**
+- Access to financial reports and cases.
+- Approve budgets and expenses.
+
+**Workflow:**
+1. Review finance dashboard.
+2. Approve or reject financial reports.
+3. Generate summary reports.
+
+---
+
+### 4. **PROCUREMENT** (Procurement Officer)
+**Responsibilities:**
+- Manage supplier contracts and bids.
+- Track procurement workflows.
+
+**Access:**
+- Upload and manage procurement documents.
+- View approval status and reports.
+
+**Workflow:**
+1. Upload bid or supplier documents.
+2. Track case status and approvals.
+
+---
+
+### 5. **ACCOUNTANT** (Accounting Staff)
+**Responsibilities:**
+- Manage accounting records and financial statements.
+- Process invoices and transactions.
+
+**Access:**
+- Upload accounting documents.
+- Access accounting-related cases.
+
+**Workflow:**
+1. Upload invoices and receipts.
+2. Maintain financial records.
+3. Support audits.
+
+---
+
+### 6. **AUDITOR** (Auditor)
+**Responsibilities:**
+- Review audit and compliance documents.
+- Generate audit and compliance reports.
+
+**Access:**
+- Read-only access to all documents.
+- Generate audit reports.
+
+**Workflow:**
+1. Review system audit trails.
+2. Generate compliance summaries.
+
+---
+
+### 7. **IT** (IT Officer)
+**Responsibilities:**
+- Maintain system uptime and configuration.
+- Manage technical documentation.
+
+**Access:**
+- System settings and logs.
+- Technical documentation.
+
+**Workflow:**
+1. Monitor system logs.
+2. Handle support tickets.
+3. Manage configurations.
+
+---
+
+### 8. **INVESTOR** (External Investor)
+**Responsibilities:**
+- Review investment and performance reports.
+
+**Access:**
+- Read-only access to approved documents and metrics.
+
+**Workflow:**
+1. Login to view approved financial and project reports.
+2. Review company performance metrics.
+
+---
+
+## Simplified Document Access by Role
+
+| Document Type | ADMIN | CEO | CFO | PROC | ACCT | AUDIT | IT | INV |
+|---------------|-------|-----|-----|------|------|-------|----|-----|
+| FINANCIAL_REPORT | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
+| PROCUREMENT_BID | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| AUDIT_REPORT | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| INVESTMENT_REPORT | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| GENERAL | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+
+---
+
+## Simplified Case Management
+
+| Case Type | ADMIN | CEO | CFO | PROC | ACCT | AUDIT | IT | INV |
+|-----------|-------|-----|-----|------|------|-------|----|-----|
+| Financial Cases | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Procurement Cases | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Audit Cases | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| IT Cases | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| General Cases | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+
+---
+
+## Security and Access Control
+
+- **JWT Authentication:** Secure user login.
+- **Role-based Access:** Controlled API and UI permissions.
+- **Department Visibility:** Each role sees only relevant documents.
+- **Audit Logs:** All actions recorded for accountability.
+- **Auto Logout:** Ensures session safety.
+
+---
+
+## Getting Started
+
+1. Admin creates user accounts.
+2. User logs in and changes temporary password.
+3. User accesses dashboard and relevant sections.
+4. Each role interacts with assigned workflows.
+
+---
+
+## Support
+
+- **Admin:** Handles user and account issues.
+- **IT:** Provides technical support.
+- **Department Heads:** Provide workflow guidance.
+
+---
+
+*This version keeps E-FileConnect roles simple and logical, focusing only on the MVP roles and workflows needed for an effective launch.*
+

@@ -5,10 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Case, CaseStatus } from "@/types/case";
 import { format } from "date-fns";
-import { ArrowLeft, FileText, User, Calendar, Edit, CheckCircle, Clock, Pause, Square } from "lucide-react";
+import { ArrowLeft, FileText, User, Calendar, Edit, CheckCircle, Clock, Pause, Square, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { caseService } from "@/services/caseService";
 import { documentService } from "@/services/documentService";
+import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const statusColors: Record<string, string> = {
   [CaseStatus.OPEN]: "bg-red-100 text-red-800",
@@ -124,7 +132,7 @@ export function CaseDetailPage() {
           
           <div className="flex gap-2">
             {canEditCase && (
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => navigate(`/cases/${id}/edit`)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Case
               </Button>
@@ -245,10 +253,33 @@ export function CaseDetailPage() {
       {/* Documents */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Documents ({caseData.documents?.length || 0})
-          </CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Documents ({caseData.documents?.length || 0})
+            </CardTitle>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Add Document
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Upload Document to Case</DialogTitle>
+                </DialogHeader>
+                <DocumentUploadForm 
+                  cases={[{ id: caseData.id, title: caseData.title }]} 
+                  onSuccess={() => {
+                    fetchCaseDetails();
+                    toast.success("Document uploaded successfully");
+                  }}
+                  
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           {caseData.documents && caseData.documents.length > 0 ? (

@@ -118,7 +118,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
         <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted/50 border rounded-md">
           <strong>Default Admin Credentials:</strong><br />
-          Email: admin@example.com<br />
+          Email: admin@file.com<br />
           Password: admin123
         </div>
       </CardContent>

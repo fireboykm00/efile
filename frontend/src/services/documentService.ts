@@ -4,6 +4,13 @@ import {
   DocumentSearchQuery,
 } from "@/types/document";
 
+interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  number: number;
+  size: number;
+}
+
 export interface DocumentListResponse {
   documents: Document[];
   total: number;
@@ -15,8 +22,8 @@ export const documentService = {
   async getDocuments(
     query?: DocumentSearchQuery
   ): Promise<DocumentListResponse> {
-    const response = await apiClient.get<any>("/documents", {
-      params: query,
+    const response = await apiClient.get<PageResponse<Document>>("/documents", {
+      params: { ...query, size: 100 }, // Increase page size to get more documents
     });
     // Handle PageResponse format from backend
     const pageData = response.data;
@@ -24,7 +31,7 @@ export const documentService = {
       documents: pageData.content || [],
       total: pageData.totalElements || 0,
       page: pageData.number || 0,
-      limit: pageData.size || 20,
+      limit: pageData.size || 100,
     };
   },
 

@@ -28,6 +28,8 @@ import lombok.ToString;
     indexes = {
         @jakarta.persistence.Index(name = "idx_cases_assigned_to", columnList = "assigned_to_id"),
         @jakarta.persistence.Index(name = "idx_cases_status", columnList = "status"),
+        @jakarta.persistence.Index(name = "idx_cases_priority", columnList = "priority"),
+        @jakarta.persistence.Index(name = "idx_cases_category", columnList = "category"),
         @jakarta.persistence.Index(name = "idx_cases_created_at", columnList = "created_at")
     }
 )
@@ -52,6 +54,32 @@ public class Case {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private CaseStatus status = CaseStatus.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private CasePriority priority = CasePriority.MEDIUM;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private CaseCategory category = CaseCategory.GENERAL;
+
+    @Column(columnDefinition = "json")
+    private String tags; // Store as JSON string
+
+    @Column(name = "due_date")
+    private Instant dueDate;
+
+    @Column(name = "estimated_completion_date")
+    private Instant estimatedCompletionDate;
+
+    @Column(name = "budget")
+    private Double budget;
+
+    @Column(length = 255)
+    private String location;
+
+    @Column(length = 100)
+    private String department;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to_id")

@@ -5,7 +5,7 @@ import com.efile.core.department.dto.DepartmentResponse;
 import com.efile.core.user.User;
 import com.efile.core.user.UserRepository;
 import com.efile.core.user.dto.UserSummary;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -55,17 +55,19 @@ public class DepartmentService {
         departmentRepository.delete(department);
     }
 
+    @Transactional(readOnly = true)
     public DepartmentResponse get(Long id) {
-        Department department = departmentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Department not found"));
+        Department department = departmentRepository.findByIdWithHead(id)
+            .orElseThrow(() -> new IllegalArgumentException("Department not found"));
         return toResponse(department);
     }
 
+    @Transactional(readOnly = true)
     public List<DepartmentResponse> getAll() {
-        return departmentRepository
-            .findAll()
-            .stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
+        List<Department> departments = departmentRepository.findAllWithHead();
+        return departments.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     public List<UserSummary> getUsers(Long id) {
