@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { DocumentsPage } from "@/pages/DocumentsPage";
 import { CasesPage } from "@/pages/CasesPage";
+import { CaseDetailPage } from "@/components/cases/CaseDetailPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { ReportsPage } from "@/pages/ReportsPage";
@@ -56,6 +57,7 @@ function AppContent() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/cases" element={<CasesPage />} />
+            <Route path="/cases/:id" element={<CaseDetailPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminPage />} />
@@ -72,7 +74,7 @@ function AppContent() {
             }
           />
 
-          {/* Catch all route */}
+          {/* Catch all route - redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
         <Toaster position="top-right" />

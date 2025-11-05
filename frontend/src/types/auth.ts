@@ -9,6 +9,11 @@ export interface User {
   email: string;
   role: UserRole;
   isActive: boolean;
+  status?: "ACTIVE" | "INACTIVE";
+  department?: string;
+  phone?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginResponse {

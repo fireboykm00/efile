@@ -2,7 +2,6 @@ import { apiClient } from "./api";
 import {
   Document,
   DocumentSearchQuery,
-  DocumentStatus,
 } from "@/types/document";
 
 export interface DocumentListResponse {
@@ -55,10 +54,8 @@ export const documentService = {
   },
 
   async downloadDocument(id: string): Promise<Blob> {
-    const response = await apiClient.get(`/documents/${id}/download`, {
-      responseType: "blob",
-    });
-    return response.data;
+    const response = await apiClient.get(`/documents/${id}/download`);
+    return response.data as Blob;
   },
 
   async approveDocument(id: string): Promise<Document> {
@@ -76,6 +73,30 @@ export const documentService = {
     return response.data;
   },
 
+  async submitDocument(id: string): Promise<Document> {
+    const response = await apiClient.put<Document>(
+      `/documents/${id}/submit`,
+      {}
+    );
+    return response.data;
+  },
+
+  async startReview(id: string): Promise<Document> {
+    const response = await apiClient.put<Document>(
+      `/documents/${id}/start-review`,
+      {}
+    );
+    return response.data;
+  },
+
+  async withdrawDocument(id: string): Promise<Document> {
+    const response = await apiClient.put<Document>(
+      `/documents/${id}/withdraw`,
+      {}
+    );
+    return response.data;
+  },
+
   async searchDocuments(
     query: string,
     filters?: Partial<DocumentSearchQuery>
@@ -87,10 +108,8 @@ export const documentService = {
   },
 
   async getDocumentReceipt(id: string): Promise<Blob> {
-    const response = await apiClient.get(`/documents/${id}/receipt`, {
-      responseType: "blob",
-    });
-    return response.data;
+    const response = await apiClient.get(`/documents/${id}/receipt`);
+    return response.data as Blob;
   },
 
   async getCaseDocuments(caseId: string): Promise<Document[]> {

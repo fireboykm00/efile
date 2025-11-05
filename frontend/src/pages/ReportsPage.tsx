@@ -8,37 +8,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function ReportsPage() {
   const [selectedFormat, setSelectedFormat] = useState("csv");
+  const [isExporting, setIsExporting] = useState<string | null>(null);
 
-  const handleExport = (type: string) => {
-    console.log(`Exporting ${type} as ${selectedFormat}`);
-    // TODO: Implement export functionality
+  const handleExport = async (type: string) => {
+    setIsExporting(type);
+    try {
+      const response = await fetch(`/api/reports/${type}/export?format=${selectedFormat}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${type}_report_${new Date().toISOString().slice(0, 10)}.${selectedFormat}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success(`${type} report exported successfully`);
+    } catch (error) {
+      toast.error(`Failed to export ${type} report`);
+    } finally {
+      setIsExporting(null);
+    }
   };
 
   const reports = [
     {
-      id: 1,
+      id: "documents",
       name: "Documents Report",
       description: "Export all documents with their status and metadata",
       icon: FileText,
     },
     {
-      id: 2,
+      id: "cases",
       name: "Cases Report",
       description: "Export all cases with assignments and status",
       icon: FileText,
     },
     {
-      id: 3,
+      id: "users",
       name: "Users Report",
       description: "Export all users with their roles and departments",
       icon: FileText,
     },
     {
-      id: 4,
+      id: "communications",
       name: "Communications Report",
       description: "Export all communications and messages",
       icon: FileText,
@@ -66,8 +95,8 @@ export function ReportsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="csv">CSV</SelectItem>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="xlsx">Excel</SelectItem>
+                <SelectItem value="pdf" disabled>PDF (Coming Soon)</SelectItem>
+                <SelectItem value="xlsx" disabled>Excel (Coming Soon)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
@@ -80,6 +109,8 @@ export function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {reports.map((report) => {
           const Icon = report.icon;
+          const isLoading = isExporting === report.id;
+          
           return (
             <Card key={report.id} className="hover:shadow-md transition">
               <CardHeader>
@@ -97,12 +128,22 @@ export function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <Button
-                  onClick={() => handleExport(report.name)}
+                  onClick={() => handleExport(report.id)}
                   className="w-full"
                   variant="outline"
+                  disabled={isLoading}
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export as {selectedFormat.toUpperCase()}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Export as {selectedFormat.toUpperCase()}
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>

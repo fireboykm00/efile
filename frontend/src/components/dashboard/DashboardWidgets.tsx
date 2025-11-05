@@ -9,14 +9,17 @@ import { FileText, Briefcase, MessageSquare, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 const statusColors: Record<string, string> = {
-  [DocumentStatus.PENDING]: "bg-yellow-100 text-yellow-800",
+  [DocumentStatus.DRAFT]: "bg-gray-100 text-gray-800",
+  [DocumentStatus.SUBMITTED]: "bg-yellow-100 text-yellow-800",
   [DocumentStatus.UNDER_REVIEW]: "bg-blue-100 text-blue-800",
   [DocumentStatus.APPROVED]: "bg-green-100 text-green-800",
   [DocumentStatus.REJECTED]: "bg-red-100 text-red-800",
-  [DocumentStatus.ARCHIVED]: "bg-gray-100 text-gray-800",
+  [DocumentStatus.WITHDRAWN]: "bg-gray-100 text-gray-800",
   [CaseStatus.OPEN]: "bg-red-100 text-red-800",
-  [CaseStatus.IN_PROGRESS]: "bg-blue-100 text-blue-800",
-  [CaseStatus.CLOSED]: "bg-green-100 text-green-800",
+  [CaseStatus.ACTIVE]: "bg-blue-100 text-blue-800",
+  [CaseStatus.COMPLETED]: "bg-green-100 text-green-800",
+  [CaseStatus.ON_HOLD]: "bg-orange-100 text-orange-800",
+  [CaseStatus.CLOSED]: "bg-gray-100 text-gray-800",
 };
 
 interface WidgetProps {

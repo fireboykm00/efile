@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { FileText, Shield, Lock, Zap } from "lucide-react";
+import { Shield, Lock, Zap } from "lucide-react";
+import { Logo } from "@/components/common/Logo";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -14,10 +15,7 @@ export function LoginPage() {
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 p-12 flex-col justify-between text-primary-foreground">
         <div>
-          <div className="flex items-center space-x-2">
-            <FileText className="h-8 w-8" />
-            <span className="text-2xl font-bold">E-FileConnect</span>
-          </div>
+          <Logo size="lg" textClassName="text-2xl" />
           <p className="mt-4 text-lg opacity-90">
             Secure Document Management for Legal & Corporate Excellence
           </p>
@@ -62,7 +60,7 @@ export function LoginPage() {
         </div>
 
         <div className="text-sm opacity-75">
-          © 2024 E-FileConnect. All rights reserved.
+          © 2025 E-FileConnect. All rights reserved.
         </div>
       </div>
 
@@ -71,9 +69,8 @@ export function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden mb-8 text-center">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <FileText className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">E-FileConnect</span>
+            <div className="flex items-center justify-center mb-2">
+              <Logo size="md" />
             </div>
             <p className="text-sm text-muted-foreground">
               Secure Document Management System

@@ -22,12 +22,28 @@ export function useDocuments(query?: DocumentSearchQuery, skip?: boolean) {
     }
   };
 
+  const approveDocument = async (id: string): Promise<void> => {
+    try {
+      await documentService.approveDocument(id);
+    } catch (err) {
+      throw err instanceof Error ? err : new Error("Failed to approve document");
+    }
+  };
+
+  const rejectDocument = async (id: string, reason: string): Promise<void> => {
+    try {
+      await documentService.rejectDocument(id, reason);
+    } catch (err) {
+      throw err instanceof Error ? err : new Error("Failed to reject document");
+    }
+  };
+
   useEffect(() => {
     if (skip) return;
     refetch();
   }, [query?.page, query?.status, query?.type, query?.caseId, skip]);
 
-  return { data, loading, error, refetch };
+  return { data, loading, error, refetch, approveDocument, rejectDocument };
 }
 
 export function useDocumentById(id: string, skip?: boolean) {
@@ -77,7 +93,7 @@ export function useDocumentUpload() {
 
       // Simulate progress
       const progressInterval = setInterval(() => {
-        setProgress((prev) => Math.min(prev + 10, 90));
+        setProgress((prev: number) => Math.min(prev + 10, 90));
       }, 200);
 
       const document = await documentService.uploadDocument(

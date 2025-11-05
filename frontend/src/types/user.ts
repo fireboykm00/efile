@@ -24,6 +24,8 @@ export interface User {
   departmentId?: string;
   department?: Department;
   isActive: boolean;
+  status?: "ACTIVE" | "INACTIVE";
+  phone?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,12 +35,16 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   role: UserRole;
-  departmentId?: string;
+  department?: string;
+  phone?: string;
 }
 
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
   role?: UserRole;
-  departmentId?: string;
+  department?: string;
+  phone?: string;
+  status?: "ACTIVE" | "INACTIVE";
 }
+

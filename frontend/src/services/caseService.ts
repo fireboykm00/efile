@@ -46,6 +46,16 @@ export const caseService = {
     return response.data;
   },
 
+  async getCaseWithDocuments(id: string): Promise<Case> {
+    const response = await apiClient.get<Case>(`/cases/${id}/details`);
+    return response.data;
+  },
+
+  async updateCaseStatus(id: string, status: CaseStatus): Promise<Case> {
+    const response = await apiClient.put<Case>(`/cases/${id}/status`, status);
+    return response.data;
+  },
+
   async createCase(request: CreateCaseRequest): Promise<Case> {
     const response = await apiClient.post<Case>("/cases", request);
     return response.data;
@@ -63,13 +73,6 @@ export const caseService = {
   async assignCase(id: string, userId: string): Promise<Case> {
     const response = await apiClient.put<Case>(`/cases/${id}/assign`, {
       userId,
-    });
-    return response.data;
-  },
-
-  async archiveCase(id: string): Promise<Case> {
-    const response = await apiClient.put<Case>(`/cases/${id}`, {
-      status: CaseStatus.ARCHIVED,
     });
     return response.data;
   },

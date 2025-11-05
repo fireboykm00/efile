@@ -17,6 +17,8 @@ export interface DashboardSummary {
   monthlyGrowth?: number;
   avgProcessingTime?: number;
   efficiency?: number;
+  // Admin-only metrics
+  totalUsers?: number;
 }
 
 export interface DashboardData {
@@ -31,9 +33,11 @@ export interface DashboardData {
   pendingDocumentsCount: number;
   activeCases: number;
   unreadMessages: number;
+  overdueCasesCount: number;
   monthlyGrowth?: number;
   avgProcessingTime?: number;
   efficiency?: number;
+  totalUsers?: number;
 }
 
 export const dashboardService = {
@@ -93,9 +97,11 @@ export const dashboardService = {
       pendingDocumentsCount: summary.pendingDocumentsCount,
       activeCases: summary.activeCases,
       unreadMessages: summary.unreadMessages,
+      overdueCasesCount: summary.overdueCasesCount,
       monthlyGrowth: summary.monthlyGrowth,
       avgProcessingTime: summary.avgProcessingTime,
       efficiency: summary.efficiency,
+      totalUsers: summary.totalUsers,
     };
   },
 };

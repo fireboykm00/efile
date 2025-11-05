@@ -2,11 +2,12 @@ import { User } from "./user";
 import { Case } from "./case";
 
 export enum DocumentStatus {
-  PENDING = "PENDING",
+  DRAFT = "DRAFT",
+  SUBMITTED = "SUBMITTED",
   UNDER_REVIEW = "UNDER_REVIEW",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
-  ARCHIVED = "ARCHIVED",
+  WITHDRAWN = "WITHDRAWN",
 }
 
 export enum DocumentType {

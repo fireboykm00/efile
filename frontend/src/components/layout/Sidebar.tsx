@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "@/components/common/Logo";
 
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -79,7 +80,7 @@ export function Sidebar() {
     <div className="flex h-full w-64 flex-col bg-background border-r">
       {/* Logo */}
       <div className="flex h-14 items-center border-b px-4">
-        <h1 className="text-lg font-semibold">E-FileConnect</h1>
+        <Logo size="sm" />
       </div>
 
       {/* Navigation */}
