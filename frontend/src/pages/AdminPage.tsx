@@ -43,7 +43,7 @@ import { toast } from "sonner";
 import { UserRole } from "@/types/auth";
 import { User as UserType } from "@/types/user";
 import { DepartmentsManagement } from "@/components/admin/DepartmentsManagement";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { 
   Edit, 
   Trash2, 
@@ -467,7 +467,13 @@ export function AdminPage() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-muted-foreground">
-                            {format(new Date(user.createdAt), 'MMM d, yyyy')}
+                            {user.createdAt ? 
+                              (isValid(new Date(user.createdAt)) ? 
+                                format(new Date(user.createdAt), 'MMM d, yyyy') : 
+                                'Invalid date'
+                              ) : 
+                              'No date'
+                            }
                           </div>
                         </TableCell>
                         <TableCell className="text-right">

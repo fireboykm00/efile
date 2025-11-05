@@ -36,6 +36,10 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "admin@efile.com",
+      password: "admin123"
+    }
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -111,6 +115,12 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
             {error}
           </div>
         )}
+
+        <div className="mt-4 p-3 text-xs text-muted-foreground bg-muted/50 border rounded-md">
+          <strong>Default Admin Credentials:</strong><br />
+          Email: admin@example.com<br />
+          Password: admin123
+        </div>
       </CardContent>
     </Card>
   );

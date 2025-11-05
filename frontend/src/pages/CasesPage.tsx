@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCases, useCaseActions } from "@/hooks/useCases";
+import { useDepartments } from "@/hooks/useDepartments";
+import { useUsers } from "@/hooks/useUsers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -44,7 +47,9 @@ import {
   MapPin, 
   Tag, 
   Users,
-  FileText
+  FileText,
+  Search,
+  Filter
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -96,8 +101,14 @@ const categoryColors: Record<string, string> = {
 export function CasesPage() {
   const navigate = useNavigate();
   const [openDialog, setOpenDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const { data, loading, error, refetch } = useCases();
   const { createCase, loading: createLoading } = useCaseActions();
+  const { data: departments, loading: departmentsLoading } = useDepartments();
+  const { data: users, loading: usersLoading } = useUsers();
 
   const form = useForm<CaseFormData>({
     resolver: zodResolver(caseSchema) as Resolver<CaseFormData>,
@@ -150,6 +161,19 @@ export function CasesPage() {
   };
 
   const cases = data?.cases || [];
+
+  // Filter cases based on search and filters
+  const filteredCases = cases.filter((caseItem) => {
+    const matchesSearch = searchTerm === "" || 
+      caseItem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      caseItem.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || caseItem.status === statusFilter;
+    const matchesPriority = priorityFilter === "all" || caseItem.priority === priorityFilter;
+    const matchesCategory = categoryFilter === "all" || caseItem.category === categoryFilter;
+    
+    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
@@ -230,7 +254,7 @@ export function CasesPage() {
                       name="priority"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Priority</FormLabel>
+                          <FormLabel>Priority *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -274,7 +298,7 @@ export function CasesPage() {
                       name="category"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category</FormLabel>
+                          <FormLabel>Category *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -302,7 +326,7 @@ export function CasesPage() {
                     name="tags"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tags</FormLabel>
+                        <FormLabel>Tags (Optional)</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="Enter tags separated by commas" 
@@ -328,7 +352,7 @@ export function CasesPage() {
                     name="assignedToId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Assigned To</FormLabel>
+                        <FormLabel>Assigned To (Optional)</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -337,9 +361,11 @@ export function CasesPage() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="unassigned">Unassigned</SelectItem>
-                            {/* TODO: Load users from API */}
-                            <SelectItem value="user1">John Doe</SelectItem>
-                            <SelectItem value="user2">Jane Smith</SelectItem>
+                            {!usersLoading && users.map((user) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.name} ({user.email})
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -352,10 +378,22 @@ export function CasesPage() {
                     name="department"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Department</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter department name" {...field} />
-                        </FormControl>
+                        <FormLabel>Department (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">No Department</SelectItem>
+                            {!departmentsLoading && departments.map((dept) => (
+                              <SelectItem key={dept.id} value={dept.name}>
+                                {dept.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -375,7 +413,7 @@ export function CasesPage() {
                       name="dueDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Due Date</FormLabel>
+                          <FormLabel>Due Date (Optional)</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -389,7 +427,7 @@ export function CasesPage() {
                       name="estimatedCompletionDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Est. Completion</FormLabel>
+                          <FormLabel>Est. Completion (Optional)</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -413,7 +451,7 @@ export function CasesPage() {
                       name="budget"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Budget ($)</FormLabel>
+                          <FormLabel>Budget ($) (Optional)</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -432,7 +470,7 @@ export function CasesPage() {
                       name="location"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Location</FormLabel>
+                          <FormLabel>Location (Optional)</FormLabel>
                           <FormControl>
                             <Input placeholder="Enter location" {...field} />
                           </FormControl>
@@ -455,7 +493,7 @@ export function CasesPage() {
                     name="attachments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Upload Files</FormLabel>
+                        <FormLabel>Upload Files (Optional)</FormLabel>
                         <FormControl>
                           <Input 
                             type="file" 
@@ -482,6 +520,104 @@ export function CasesPage() {
           </DialogContent>
                   
       </Dialog>
+
+      {/* Search and Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Search & Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search cases by title or description..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Filter Dropdowns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value={CaseStatus.OPEN}>Open</SelectItem>
+                    <SelectItem value={CaseStatus.ACTIVE}>Active</SelectItem>
+                    <SelectItem value={CaseStatus.UNDER_REVIEW}>Under Review</SelectItem>
+                    <SelectItem value={CaseStatus.COMPLETED}>Completed</SelectItem>
+                    <SelectItem value={CaseStatus.ON_HOLD}>On Hold</SelectItem>
+                    <SelectItem value={CaseStatus.CLOSED}>Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Priority</Label>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value={CasePriority.LOW}>Low</SelectItem>
+                    <SelectItem value={CasePriority.MEDIUM}>Medium</SelectItem>
+                    <SelectItem value={CasePriority.HIGH}>High</SelectItem>
+                    <SelectItem value={CasePriority.URGENT}>Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Category</Label>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value={CaseCategory.GENERAL}>General</SelectItem>
+                    <SelectItem value={CaseCategory.LEGAL}>Legal</SelectItem>
+                    <SelectItem value={CaseCategory.FINANCIAL}>Financial</SelectItem>
+                    <SelectItem value={CaseCategory.HR}>Human Resources</SelectItem>
+                    <SelectItem value={CaseCategory.COMPLIANCE}>Compliance</SelectItem>
+                    <SelectItem value={CaseCategory.OPERATIONS}>Operations</SelectItem>
+                    <SelectItem value={CaseCategory.STRATEGIC}>Strategic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchTerm || statusFilter !== "all" || priorityFilter !== "all" || categoryFilter !== "all") && (
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setStatusFilter("all");
+                    setPriorityFilter("all");
+                    setCategoryFilter("all");
+                  }}
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
       </div>
 
       <Card>
@@ -493,11 +629,15 @@ export function CasesPage() {
             <p className="text-muted-foreground">Loading cases...</p>
           ) : error ? (
             <p className="text-red-600">Error: {error.message}</p>
-          ) : cases.length === 0 ? (
-            <p className="text-muted-foreground">No cases found</p>
+          ) : filteredCases.length === 0 ? (
+            <p className="text-muted-foreground">
+              {searchTerm || statusFilter || priorityFilter || categoryFilter 
+                ? "No cases found matching your filters" 
+                : "No cases found"}
+            </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {cases.map((caseItem) => (
+              {filteredCases.map((caseItem) => (
                 <div
                   key={caseItem.id}
                   className="border rounded-lg p-4 hover:shadow-md transition cursor-pointer"
@@ -505,7 +645,7 @@ export function CasesPage() {
                 >
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-medium text-lg flex-1">{caseItem.title}</h3>
-                    <div className="flex gap-1 ml-2">
+                    <div className="flex gap-1 ml-2 flex-wrap">
                       <Badge className={statusColors[caseItem.status]}>
                         {caseItem.status}
                       </Badge>
@@ -557,6 +697,13 @@ export function CasesPage() {
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <MapPin className="h-3 w-3" />
                         {caseItem.location}
+                      </div>
+                    )}
+                    
+                    {caseItem.department && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Users className="h-3 w-3" />
+                        Department: {caseItem.department}
                       </div>
                     )}
                     

@@ -8,11 +8,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ReactNode } from "react";
 
 export interface Column<T> {
   key: string;
   header: string;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T) => ReactNode;
   className?: string;
 }
 
@@ -28,7 +29,7 @@ interface DataTableProps<T> {
   emptyMessage?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   onRowClick,
@@ -69,7 +70,7 @@ export function DataTable<T extends Record<string, any>>({
                     <TableCell key={column.key} className={column.className}>
                       {column.render
                         ? column.render(item)
-                        : item[column.key]}
+                        : (item[column.key] as ReactNode)}
                     </TableCell>
                   ))}
                 </TableRow>

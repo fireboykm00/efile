@@ -57,7 +57,15 @@ export const caseService = {
   },
 
   async createCase(request: CreateCaseRequest): Promise<Case> {
-    const response = await apiClient.post<Case>("/cases", request);
+    // Convert assignedToId to number if it exists and is not "unassigned"
+    const payload = {
+      ...request,
+      assignedToId: request.assignedToId && request.assignedToId !== "unassigned" 
+        ? parseInt(request.assignedToId, 10) 
+        : null
+    };
+    
+    const response = await apiClient.post<Case>("/cases", payload);
     return response.data;
   },
 

@@ -1,14 +1,15 @@
 import { useDashboard } from "@/hooks/useDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useAuthHooks";
+import { useNavigate } from "react-router-dom";
 import { StatsCard } from "@/components/common/StatsCard";
+import { toast } from "sonner";
 import {
   FileText,
   CheckCircle,
   XCircle,
   Clock,
   Briefcase,
-  MessageSquare,
   TrendingUp,
   Users,
   DollarSign,
@@ -24,6 +25,7 @@ export function DashboardPage() {
   const { user } = useAuth();
   const userRole = useUserRole();
   const { data: dashboardData, loading, error } = useDashboard();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -252,29 +254,38 @@ export function DashboardPage() {
 
       {/* Dashboard Widgets */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Pending Documents Widget - Only for approvers */}
+        {/* System Health Widget - Only for admins */}
         {(userRole === UserRole.ADMIN || 
           userRole === UserRole.CEO || 
           userRole === UserRole.CFO) && (
           <div className="bg-card rounded-lg border p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Recent Pending Documents
+              <TrendingUp className="h-5 w-5" />
+              System Health
             </h3>
-            <div className="space-y-2">
-              {dashboardData?.pendingDocumentsList?.slice(0, 5).map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex justify-between items-center text-sm"
-                >
-                  <span className="truncate">{doc.title}</span>
-                  <span className="text-muted-foreground">{doc.status}</span>
-                </div>
-              )) || (
-                <p className="text-muted-foreground text-sm">
-                  No pending documents
-                </p>
-              )}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span>Active Cases</span>
+                <span className="text-green-600 font-medium">
+                  {dashboardData?.activeCases || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>Pending Review</span>
+                <span className="text-yellow-600 font-medium">
+                  {dashboardData?.pendingDocumentsCount || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>Approved Documents</span>
+                <span className="text-blue-600 font-medium">
+                  {dashboardData?.approvedDocuments || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>System Status</span>
+                <span className="text-green-600 font-medium">Healthy</span>
+              </div>
             </div>
           </div>
         )}
@@ -324,25 +335,41 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* Messages Widget */}
+        {/* Quick Actions Widget */}
         <div className="bg-card rounded-lg border p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Recent Messages
+            <Settings className="h-5 w-5" />
+            Quick Actions
           </h3>
           <div className="space-y-2">
-            {dashboardData?.unreadCommunicationsList?.slice(0, 5).map((msg) => (
-              <div
-                key={msg.id}
-                className="flex justify-between items-center text-sm"
+            <button 
+              className="w-full text-left px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+              onClick={() => navigate('/cases')}
+            >
+              Create New Case
+            </button>
+            <button 
+              className="w-full text-left px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+              onClick={() => navigate('/documents')}
+            >
+              Upload Document
+            </button>
+            <button 
+              className="w-full text-left px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+              onClick={() => {
+                // Placeholder for reports functionality
+                toast.info('Reports feature coming soon!');
+              }}
+            >
+              View Reports
+            </button>
+            {(userRole === UserRole.ADMIN || userRole === UserRole.CEO) && (
+              <button 
+                className="w-full text-left px-3 py-2 text-sm bg-muted hover:bg-muted/80 rounded-md transition-colors"
+                onClick={() => navigate('/admin')}
               >
-                <span className="truncate">{msg.content}</span>
-                <span className="text-muted-foreground">
-                  {new Date(msg.sentAt).toLocaleDateString()}
-                </span>
-              </div>
-            )) || (
-              <p className="text-muted-foreground text-sm">No new messages</p>
+                Manage Users
+              </button>
             )}
           </div>
         </div>

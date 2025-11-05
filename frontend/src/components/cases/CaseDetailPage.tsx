@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Case, CaseStatus } from "@/types/case";
-import { Document, DocumentStatus } from "@/types/document";
-import { UserRole } from "@/types/auth";
 import { format } from "date-fns";
 import { ArrowLeft, FileText, User, Calendar, Edit, CheckCircle, Clock, Pause, Square } from "lucide-react";
 import { toast } from "sonner";
@@ -37,11 +35,7 @@ export function CaseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCaseDetails();
-  }, [id]);
-
-  const fetchCaseDetails = async () => {
+  const fetchCaseDetails = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -54,7 +48,11 @@ export function CaseDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchCaseDetails();
+  }, [fetchCaseDetails]);
 
   const handleStatusUpdate = async (newStatus: CaseStatus) => {
     if (!id || !caseData) return;
@@ -82,6 +80,7 @@ export function CaseDetailPage() {
       document.body.removeChild(a);
     } catch (err) {
       toast.error("Failed to download document");
+      console.error("Error downloading document:", err);
     }
   };
 
