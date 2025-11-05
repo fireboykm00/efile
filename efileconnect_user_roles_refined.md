@@ -1,0 +1,191 @@
+# E-FileConnect Simplified User Roles and Workflows
+
+## 1. Overview
+E-FileConnect enables GAH to manage all its digital document workflows securely and efficiently. This refined user role documentation ensures the system remains minimal, easy to maintain, and focused on the most impactful roles for an MVP release.
+
+---
+
+## 2. Core Principles
+- **Simplicity:** Only essential roles are included to prevent feature overload.
+- **Accountability:** Every action in the system is tied to a verified role.
+- **Clarity:** Each role has distinct responsibilities with minimal overlap.
+
+---
+
+## 3. MVP User Roles
+
+### **1. ADMIN**
+**Purpose:** Oversee the system and manage all users.
+
+**Responsibilities:**
+- Create and manage user accounts.
+- Monitor system activity and access logs.
+- Configure departments and permissions.
+- Generate and view all system reports.
+
+**Access:** Full system access across all modules.
+
+**Typical Workflow:**
+1. Add or modify user accounts.
+2. Review document and case activities.
+3. Manage system configurations.
+4. Generate usage or audit reports.
+
+---
+
+### **2. CEO**
+**Purpose:** Approve key company documents and review overall performance.
+
+**Responsibilities:**
+- Review and approve important documents.
+- View reports and analytics dashboards.
+- Oversee department-level progress.
+
+**Access:** Dashboard, document approvals, company-wide reports.
+
+**Typical Workflow:**
+1. Login to dashboard.
+2. Review pending documents.
+3. Approve or reject files.
+4. Analyze company-wide reports.
+
+---
+
+### **3. CFO**
+**Purpose:** Manage and approve financial operations and documentation.
+
+**Responsibilities:**
+- Oversee financial document workflows.
+- Approve budgets, invoices, and reports.
+- Collaborate with Procurement and Accounting roles.
+
+**Access:** Financial documents, reports, and related cases.
+
+**Typical Workflow:**
+1. Access finance dashboard.
+2. Review and approve financial documents.
+3. Track spending and case summaries.
+
+---
+
+### **4. PROCUREMENT OFFICER**
+**Purpose:** Manage supplier and procurement-related workflows.
+
+**Responsibilities:**
+- Upload and manage procurement documents.
+- Track bids, contracts, and supplier records.
+- Collaborate with CFO for approvals.
+
+**Access:** Procurement documents, relevant cases, and reports.
+
+**Typical Workflow:**
+1. Upload procurement bids or contracts.
+2. Monitor document approval status.
+3. Generate procurement summaries.
+
+---
+
+### **5. ACCOUNTANT**
+**Purpose:** Maintain accounting records and assist with financial case management.
+
+**Responsibilities:**
+- Upload invoices and transaction documents.
+- Maintain accounting records.
+- Support audits and report generation.
+
+**Access:** Accounting documents and cases.
+
+**Typical Workflow:**
+1. Upload invoices and receipts.
+2. Maintain transaction records.
+3. Support finance or audit reviews.
+
+---
+
+### **6. AUDITOR**
+**Purpose:** Review compliance, assess financial records, and generate audit reports.
+
+**Responsibilities:**
+- Review system activity and approval trails.
+- Generate audit and compliance reports.
+- Provide recommendations based on reviews.
+
+**Access:** Read-only access to all cases and documents.
+
+**Typical Workflow:**
+1. Access audit dashboard.
+2. Review document history and approvals.
+3. Generate compliance reports.
+
+---
+
+### **7. INVESTOR (External)**
+**Purpose:** View company performance and approved financial summaries.
+
+**Responsibilities:**
+- Monitor investment progress.
+- Access approved reports and metrics.
+
+**Access:** Read-only access to approved financial and performance data.
+
+**Typical Workflow:**
+1. Login to investor dashboard.
+2. Review approved reports and analytics.
+
+---
+
+## 4. Simplified Role Access Table
+
+| Role | Document Access | Case Access | Approval Rights | Reports | System Management |
+|------|------------------|--------------|------------------|----------|--------------------|
+| **Admin** | All | All | ✅ | ✅ | ✅ |
+| **CEO** | All | Executive Cases | ✅ | ✅ | ❌ |
+| **CFO** | Financial | Financial Cases | ✅ | ✅ | ❌ |
+| **Procurement** | Procurement | Procurement Cases | ⚙️ (with CFO) | ✅ | ❌ |
+| **Accountant** | Financial | Financial Cases | ❌ | ⚙️ (assist) | ❌ |
+| **Auditor** | All (Read-only) | All | ❌ | ✅ | ❌ |
+| **Investor** | Approved Reports | Investment Cases | ❌ | ✅ (Limited) | ❌ |
+
+---
+
+## 5. Role Simplification Justification
+- Roles such as IT or Department Heads were removed for MVP scope.
+- Roles are grouped by core workflow type: **Administration**, **Finance**, **Procurement**, **Audit**, and **External Access**.
+- Each remaining role directly affects document movement and accountability.
+
+---
+
+## 6. Workflow Summary
+
+### Document Lifecycle:
+1. **Upload:** By Accountant, Procurement, or Admin.
+2. **Review:** CFO or CEO depending on document type.
+3. **Approval/Rejection:** Authorized role approves or rejects.
+4. **Storage & Tracking:** Status updated and visible to all relevant roles.
+5. **Reporting:** Reports generated by Admin, CFO, or Auditor.
+
+### Case Workflow:
+1. **Create Case:** By Admin or relevant department.
+2. **Attach Documents:** Related uploads linked to the case.
+3. **Assign Reviewer:** Role-based assignment (e.g., CFO for financial cases).
+4. **Track Progress:** Case moves through predefined stages.
+5. **Close Case:** When approved or finalized.
+
+---
+
+## 7. Security Highlights
+- Role-based restrictions enforced both on frontend and backend.
+- Read-only access for external and audit roles.
+- Full traceability of all actions via audit logs.
+- Encrypted communication and session control.
+
+---
+
+## 8. Future Role Expansion (Post-MVP)
+- **IT Administrator**: For technical configurations.
+- **Department Manager**: For advanced intra-department workflows.
+- **Mobile User Roles**: For future mobile version (executives and investors).
+
+---
+
+*This refined user role specification ensures E-FileConnect remains lean, understandable, and scalable while maintaining clear boundaries for each participant in GAH’s document workflow ecosystem.*
